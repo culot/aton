@@ -6,6 +6,7 @@ class Server {
  public:
   explicit Server(int port = 5555) : port_(port) {}
   void start();
+  void processInput();
 
  private:
   int port_;

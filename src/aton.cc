@@ -17,7 +17,10 @@ int main(int argc, char** argv) {
     srv.start();
   } catch (const std::exception& e) {
     LOG(ERROR) << "Aborting due to following error: " << e.what();
+    return 1;
   }
+
+  srv.processInput();
 
   return 0;
 }
