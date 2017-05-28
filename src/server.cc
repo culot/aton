@@ -30,9 +30,10 @@ void Server::processInput() {
   for (;;) {
     char buf[cfg::MAXINPUTSIZE];
     int nbytes = zmq_recv(responder_, buf, cfg::MAXINPUTSIZE, 0);
-    LOG(INFO) << "Received input [" << buf << "]";
+    std::string input(buf, nbytes);
+    LOG(INFO) << "Received input [" << input << "] length [" << nbytes << "]";
     std::string reply;
-    if (isStatusRequest(buf)) {
+    if (isStatusRequest(input)) {
       reply = getStatus();
     } else {
       reply = handleRequest(buf);
