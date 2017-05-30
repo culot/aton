@@ -1,18 +1,16 @@
 #pragma once
 
 #include <cstdint>
+#include <memory>
 
 namespace aton {
 
-template <typename T>
 class State {
  public:
-  explicit State(const T& trigger);
-  uint64_t fingerprint() const {return fingerprint_;}
-
- private:
-  T trigger_;
-  uint64_t fingerprint_;
+  virtual ~State() {}
+  virtual uint64_t signature() = 0;
 };
+
+using StatePtr = std::shared_ptr<State>;
 
 }
