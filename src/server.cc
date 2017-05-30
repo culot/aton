@@ -7,6 +7,8 @@
 #include <zmq.h>
 
 #include "cfg.h"
+#include "statemgr.h"
+#include "state.h"
 
 #include "server.h"
 
@@ -36,15 +38,15 @@ void Server::processInput() {
     if (isStatusRequest(input)) {
       reply = getStatus();
     } else {
-      reply = handleRequest(buf);
+      reply = handleRequest(input);
     }
     zmq_send(responder_, reply.c_str(), reply.length(), 0);
   }
 }
 
-std::string Server::handleRequest(const std::string& request) const {
-  static const std::string notYet("NOT YET IMPLEMENTED");
-  return notYet;
+std::string Server::handleRequest(const std::string& request) {
+  StatePtr state = statemgr_.registerTextState(request);
+  return "";
 }
 
 std::string Server::getStatus() const {
