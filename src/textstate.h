@@ -1,5 +1,7 @@
 #pragma once
 
+#include <ostream>
+
 #include "signature.h"
 #include "statemgr.h"
 
@@ -15,6 +17,10 @@ class TextState : public State {
   uint64_t signature() override {return signature_.fingerprint();}
 
  private:
+  void print(std::ostream& out) const override {
+    out << trigger_;
+  }
+
   const std::string trigger_;
   const Signature signature_;
 };
