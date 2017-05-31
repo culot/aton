@@ -12,7 +12,7 @@ class TransitionMgr {
   TransitionPtr registerTransition(const StatePtr& from, const StatePtr& to);
 
  private:
-  std::map<uint64_t, TransitionPtr> transitions_;
+  std::multimap<uint64_t, TransitionPtr> transitions_;
 };
 
 }
