@@ -3,12 +3,14 @@ project(tests)
 
 set(CMAKE_CXX_STANDARD 11)
 
-add_executable(status status.cc)
-# add_executable(test2 test2.cc)
-
 # ZeroMQ library
 find_path(ZMQ_INCLUDE_DIR zmq.h)
 find_library(ZMQ_LIBRARY NAMES zmq)
 
-target_include_directories(status PUBLIC ${ZMQ_INCLUDE_DIR})
-target_link_libraries(status PUBLIC ${ZMQ_LIBRARY})
+file(GLOB TST_SOURCES RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} *.cc)
+foreach(testsrcfile ${TST_SOURCES})
+  string(REPLACE ".cc" "" testname ${testsrcfile})
+  add_executable(${testname} ${testsrcfile})
+  target_include_directories(${testname} PUBLIC ${ZMQ_INCLUDE_DIR})
+  target_link_libraries(${testname} PUBLIC ${ZMQ_LIBRARY})
+endforeach(testsrcfile ${TST_SOURCES})

@@ -3,6 +3,9 @@
 #include <string>
 #include <chrono>
 
+#include "statemgr.h"
+#include "transitionmgr.h"
+
 namespace aton {
 
 class Server {
@@ -12,13 +15,15 @@ class Server {
   void processInput();
 
  private:
-  std::string handleRequest(const std::string& request) const;
+  std::string handleRequest(const std::string& request);
   std::string getStatus() const;
   bool isStatusRequest(const std::string& request) const;
 
   int port_;
   void* context_;
   void* responder_;
+  StateMgr statemgr_;
+  TransitionMgr transitionmgr_;
   std::chrono::system_clock::time_point startTime_;
 };
 
