@@ -31,16 +31,27 @@ TransitionPtr TransitionMgr::createTransition(const StatePtr& from, const StateP
   return transition;
 }
 
-TransitionPtr TransitionMgr::getTransition(const StatePtr& from, const StatePtr& to) {
+TransitionPtr TransitionMgr::getTransitionFrom(const StatePtr& from) const {
   uint64_t fromStateSig = from->signature();
   // For now, just extract the first item of the multimap (use equal_range to get all items)
   auto it = transitions_.find(fromStateSig);
   if (it == transitions_.end()) {
-    LOG(INFO) << __func__ << "Transition from [" << *from << "] to [" << *to
-              << "] does not exist";
+    LOG(INFO) << __func__ << " - No existing transition from [" << *from << "]";
     return nullptr;
   } else {
     TransitionPtr transition = it->second;
+    LOG(INFO) << __func__ << " - Transition found from [" << *from << "] to [" << *transition->to() << "]";
+    return transition;
+  }
+}
+
+TransitionPtr TransitionMgr::getTransition(const StatePtr& from, const StatePtr& to) const {
+  TransitionPtr transition = getTransitionFrom(from);
+  if (transition == nullptr || !(*transition->to() == *to)) {
+    LOG(INFO) << __func__ << "- No exisiting transition from [" << *from << "] to [" << *to << "]";
+    return nullptr;
+  } else {
+    LOG(INFO) << __func__ << "- Transition found from [" << *from << "] to [" << *to << "]";
     return transition;
   }
 }
