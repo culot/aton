@@ -1,6 +1,7 @@
 #pragma once
 
 #include <ostream>
+#include <string>
 
 #include "signature.h"
 #include "statemgr.h"
@@ -14,11 +15,16 @@ class TextState : public State {
   TextState(const std::string& input, const Signature& signature)
       : trigger_(input), signature_(signature) {}
 
-  uint64_t signature() override {return signature_.fingerprint();}
+  std::string str() const override {return trigger_;}
+  uint64_t signature() const override {return signature_.fingerprint();}
+
+  bool operator==(const State& rhs) const override {
+    return signature() == rhs.signature();
+  }
 
  private:
   void print(std::ostream& out) const override {
-    out << trigger_;
+    out << str();
   }
 
   const std::string trigger_;
