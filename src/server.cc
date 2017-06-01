@@ -45,7 +45,9 @@ void Server::processInput() {
 }
 
 std::string Server::handleRequest(const std::string& request) {
-  StatePtr state = statemgr_.registerTextState(request);
+  StatePtr currentState = statemgr_.currentTextState();
+  StatePtr newState = statemgr_.registerTextState(request);
+  transitionmgr_.registerTransition(currentState, newState);
   return "";
 }
 

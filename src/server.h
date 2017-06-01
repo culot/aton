@@ -4,6 +4,7 @@
 #include <chrono>
 
 #include "statemgr.h"
+#include "transitionmgr.h"
 
 namespace aton {
 
@@ -22,6 +23,7 @@ class Server {
   void* context_;
   void* responder_;
   StateMgr statemgr_;
+  TransitionMgr transitionmgr_;
   std::chrono::system_clock::time_point startTime_;
 };
 
