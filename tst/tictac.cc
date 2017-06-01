@@ -20,6 +20,7 @@ int main (void) {
     char buf[MAXREPLYSIZE];
     zmq_recv(requester, buf, MAXREPLYSIZE, 0);
     std::string answer(buf);
+    std::cout << "Received '" << answer << "' ... ";
     assert(answer.length() == 0);
     std::cout << "OK" << std::endl;
   }
@@ -29,6 +30,7 @@ int main (void) {
     char buf[MAXREPLYSIZE];
     zmq_recv(requester, buf, MAXREPLYSIZE, 0);
     std::string answer(buf);
+    std::cout << "Received '" << answer << "' ... ";
     assert(answer.length() == 0);
     std::cout << "OK" << std::endl;
   }
@@ -38,8 +40,9 @@ int main (void) {
     char buf[MAXREPLYSIZE];
     zmq_recv(requester, buf, MAXREPLYSIZE, 0);
     std::string answer(buf);
+    std::cout << "Received '" << answer << "' ... ";
     assert(answer == "tac");
-    std::cout << "OK, received 'tac'" << std::endl;
+    std::cout << "OK" << std::endl;
   }
 
   zmq_close(requester);
