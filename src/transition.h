@@ -11,6 +11,8 @@ class Transition {
   Transition(const StatePtr& fromState, const StatePtr& toState)
       : fromState_(fromState), toState_(toState), weight_(1) {}
 
+  const StatePtr from() const {return fromState_;}
+  const StatePtr to() const {return toState_;}
   int weight() const {return weight_;}
   void increaseWeight() {++weight_;}
 
