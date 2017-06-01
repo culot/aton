@@ -21,6 +21,7 @@ StatePtr StateMgr::registerTextState(const std::string& input) {
   } else {
     state = it->second;
   }
+  currentState_ = state;
   return state;
 }
 
