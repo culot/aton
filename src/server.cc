@@ -48,7 +48,17 @@ std::string Server::handleRequest(const std::string& request) {
   StatePtr currentState = statemgr_.currentTextState();
   StatePtr newState = statemgr_.registerTextState(request);
   transitionmgr_.registerTransition(currentState, newState);
-  return "";
+
+  // Now for the answer, look for the most probable transition
+  // starting with newState, and if it exists then return its
+  // final state.
+  TransitionPtr transition = transitionmgr_.getTransitionFrom(newState);
+  if (transition != nullptr) {
+    StatePtr mostProbableNextState = transition->to();
+    return mostProbableNextState->str();
+  } else {
+    return "";
+  }
 }
 
 std::string Server::getStatus() const {
