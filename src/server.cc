@@ -2,6 +2,7 @@
 #include <sstream>
 #include <ctime>
 #include <iomanip>
+#include <vector>
 
 #include <glog/logging.h>
 #include <zmq.h>
@@ -33,13 +34,16 @@ void Server::processInput() {
     char buf[cfg::MAXINPUTSIZE];
     int nbytes = zmq_recv(responder_, buf, cfg::MAXINPUTSIZE, 0);
     std::string input(buf, nbytes);
-    LOG(INFO) << "Received input [" << input << "] length [" << nbytes << "]";
+    LOG(INFO) << "<<< Received input [" << input << "] length [" << nbytes << "]";
     std::string reply;
     if (isStatusRequest(input)) {
       reply = getStatus();
+    } else if (isClearRequest(input)) {
+      reply = clear();
     } else {
       reply = handleRequest(input);
     }
+    LOG(INFO) << ">>> Sending reply [" << reply << "] length [" << reply.length() << "]";
     zmq_send(responder_, reply.c_str(), reply.length(), 0);
   }
 }
@@ -49,16 +53,24 @@ std::string Server::handleRequest(const std::string& request) {
   StatePtr newState = statemgr_.registerTextState(request);
   transitionmgr_.registerTransition(currentState, newState);
 
-  // Now for the answer, look for the most probable transition
-  // starting with newState, and if it exists then return its
-  // final state.
-  TransitionPtr transition = transitionmgr_.getTransitionFrom(newState);
-  if (transition != nullptr) {
-    StatePtr mostProbableNextState = transition->to();
-    return mostProbableNextState->str();
+  std::vector<TransitionPtr> transitions = transitionmgr_.getAllTransitionsFrom(newState);
+  if (!transitions.empty()) {
+    return formatReply(transitions);
   } else {
     return "";
   }
+}
+
+std::string Server::formatReply(const std::vector<TransitionPtr>& transitions) const {
+  static const std::string separator("|");
+  std::string reply;
+  for (const auto transition : transitions) {
+    reply.append(transition->to()->str());
+    reply.append(separator);
+  }
+  // Remove extraneous last separator
+  reply.pop_back();
+  return reply;
 }
 
 std::string Server::getStatus() const {
@@ -70,8 +82,19 @@ std::string Server::getStatus() const {
   return status;
 }
 
+std::string Server::clear() {
+  LOG(INFO) << "Clearing server memory";
+  transitionmgr_.clear();
+  statemgr_.clear();
+  return "Server memory cleared";
+}
+
 bool Server::isStatusRequest(const std::string& request) const {
   return request == cfg::REQUEST_STATUS;
+}
+
+bool Server::isClearRequest(const std::string& request) const {
+  return request == cfg::REQUEST_CLEAR;
 }
 
 }

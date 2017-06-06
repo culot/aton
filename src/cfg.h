@@ -8,6 +8,7 @@ namespace cfg {
 extern const int MAXINPUTSIZE;
 
 extern const std::string REQUEST_STATUS;
+extern const std::string REQUEST_CLEAR;
 
 }
 }

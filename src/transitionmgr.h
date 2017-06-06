@@ -1,5 +1,6 @@
 #pragma once
 
+#include <vector>
 #include <map>
 
 #include "state.h"
@@ -10,7 +11,9 @@ namespace aton {
 class TransitionMgr {
  public:
   TransitionPtr registerTransition(const StatePtr& from, const StatePtr& to);
-  TransitionPtr getTransitionFrom(const StatePtr& from) const;
+  TransitionPtr getMostProbableTransitionFrom(const StatePtr& from) const;
+  std::vector<TransitionPtr> getAllTransitionsFrom(const StatePtr& from) const;
+  void clear();
 
  private:
   bool isValidTransition(const StatePtr& from, const StatePtr& to) const;

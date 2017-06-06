@@ -5,6 +5,9 @@
 
 #include <zmq.h>
 
+#include "common.h"
+
+
 static const int MAXREPLYSIZE = 1024;
 
 int main (void) {
@@ -12,6 +15,8 @@ int main (void) {
   void* context = zmq_ctx_new();
   void* requester = zmq_socket(context, ZMQ_REQ);
   zmq_connect(requester, "tcp://localhost:5555");
+
+  common::clearServerMemory(requester);
 
   {
     std::cout << "Sending STATUS query... ";

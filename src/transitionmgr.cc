@@ -31,9 +31,8 @@ TransitionPtr TransitionMgr::createTransition(const StatePtr& from, const StateP
   return transition;
 }
 
-TransitionPtr TransitionMgr::getTransitionFrom(const StatePtr& from) const {
+TransitionPtr TransitionMgr::getMostProbableTransitionFrom(const StatePtr& from) const {
   uint64_t fromStateSig = from->signature();
-  // For now, just extract the first item of the multimap (use equal_range to get all items)
   auto it = transitions_.find(fromStateSig);
   if (it == transitions_.end()) {
     LOG(INFO) << __func__ << " - No existing transition from [" << *from << "]";
@@ -45,15 +44,29 @@ TransitionPtr TransitionMgr::getTransitionFrom(const StatePtr& from) const {
   }
 }
 
-TransitionPtr TransitionMgr::getTransition(const StatePtr& from, const StatePtr& to) const {
-  TransitionPtr transition = getTransitionFrom(from);
-  if (transition == nullptr || !(*transition->to() == *to)) {
-    LOG(INFO) << __func__ << "- No exisiting transition from [" << *from << "] to [" << *to << "]";
-    return nullptr;
-  } else {
-    LOG(INFO) << __func__ << "- Transition found from [" << *from << "] to [" << *to << "]";
-    return transition;
+std::vector<TransitionPtr> TransitionMgr::getAllTransitionsFrom(const StatePtr& from) const {
+  uint64_t fromStateSig = from->signature();
+  auto range = transitions_.equal_range(fromStateSig);
+  std::vector<TransitionPtr> transitions;
+  for (auto it = range.first; it != range.second; ++it) {
+    TransitionPtr transition = it->second;
+    LOG(INFO) << __func__ << " - Transition found from [" << *from << "] to [" << *transition->to() << "]";
+    transitions.push_back(transition);
   }
+  LOG(INFO) << __func__ << " - Found [" << transitions.size() << "] transitions from [" << *from << "]";
+  return transitions;
+}
+
+TransitionPtr TransitionMgr::getTransition(const StatePtr& from, const StatePtr& to) const {
+  std::vector<TransitionPtr> transitions = getAllTransitionsFrom(from);
+  for (const auto transition : transitions) {
+    if (*transition->to() == *to) {
+      LOG(INFO) << __func__ << "- Transition found from [" << *from << "] to [" << *to << "]";
+      return transition;
+    }
+  }
+  LOG(INFO) << __func__ << "- No exisiting transition from [" << *from << "] to [" << *to << "]";
+  return nullptr;
 }
 
 void TransitionMgr::increaseTransitionWeight(TransitionPtr& transition) const {
@@ -69,6 +82,11 @@ bool TransitionMgr::isValidTransition(const StatePtr& from, const StatePtr& to) 
     return false;
   }
   return true;
+}
+
+void TransitionMgr::clear() {
+  LOG(INFO) << __func__ << " - Removing [" << transitions_.size() << "] transitions";
+  transitions_.clear();
 }
 
 }
