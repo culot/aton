@@ -15,6 +15,8 @@ int main (void) {
   zmq_connect(requester, "tcp://localhost:5555");
   std::cout << "OK" << std::endl;
 
+  common::clearServerMemory(requester);
+
   common::sendAndReceive(requester, "tic", "");
   common::sendAndReceive(requester, "tac", "");
   common::sendAndReceive(requester, "tic", "tac");
