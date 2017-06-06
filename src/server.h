@@ -16,6 +16,7 @@ class Server {
 
  private:
   std::string handleRequest(const std::string& request);
+  std::string formatReply(const std::vector<TransitionPtr>& transitions) const;
   std::string getStatus() const;
   bool isStatusRequest(const std::string& request) const;
   bool isClearRequest(const std::string& request) const;
