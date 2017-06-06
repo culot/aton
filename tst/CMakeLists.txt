@@ -1,5 +1,6 @@
 cmake_minimum_required(VERSION 3.5)
 project(tests)
+enable_testing()
 
 set(CMAKE_CXX_STANDARD 11)
 
@@ -13,6 +14,7 @@ list(REMOVE_ITEM TST_SOURCES "common.cc")
 foreach(testsrcfile ${TST_SOURCES})
   string(REPLACE ".cc" "" testname ${testsrcfile})
   add_executable(${testname} ${testsrcfile} common.cc)
+  add_test(${testname} ${testname})
   target_include_directories(${testname} PUBLIC ${ZMQ_INCLUDE_DIR})
   target_link_libraries(${testname} PUBLIC ${ZMQ_LIBRARY})
 endforeach(testsrcfile ${TST_SOURCES})
