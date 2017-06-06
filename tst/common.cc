@@ -20,6 +20,7 @@ void sendAndReceive(void* tgt, const std::string& in, const std::string& out) {
   std::cout << "Sending '" << in << "' ... ";
   zmq_send(tgt, in.c_str(), in.length(), 0);
   char buf[MAXREPLYSIZE];
+  bzero(buf, MAXREPLYSIZE);
   zmq_recv(tgt, buf, MAXREPLYSIZE, 0);
   std::string answer(buf);
   std::cout << "Expected '" << out << "', received '" << answer << "' ... ";
