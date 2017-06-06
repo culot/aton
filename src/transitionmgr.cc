@@ -71,4 +71,9 @@ bool TransitionMgr::isValidTransition(const StatePtr& from, const StatePtr& to) 
   return true;
 }
 
+void TransitionMgr::clear() {
+  LOG(INFO) << __func__ << " - Removing [" << transitions_.size() << "] transitions";
+  transitions_.clear();
+}
+
 }

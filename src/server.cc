@@ -37,6 +37,8 @@ void Server::processInput() {
     std::string reply;
     if (isStatusRequest(input)) {
       reply = getStatus();
+    } else if (isClearRequest(input)) {
+      reply = clear();
     } else {
       reply = handleRequest(input);
     }
@@ -70,8 +72,19 @@ std::string Server::getStatus() const {
   return status;
 }
 
+std::string Server::clear() {
+  LOG(INFO) << "Clearing server memory";
+  transitionmgr_.clear();
+  statemgr_.clear();
+  return "Server memory cleared";
+}
+
 bool Server::isStatusRequest(const std::string& request) const {
   return request == cfg::REQUEST_STATUS;
+}
+
+bool Server::isClearRequest(const std::string& request) const {
+  return request == cfg::REQUEST_CLEAR;
 }
 
 }

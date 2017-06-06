@@ -18,6 +18,8 @@ class Server {
   std::string handleRequest(const std::string& request);
   std::string getStatus() const;
   bool isStatusRequest(const std::string& request) const;
+  bool isClearRequest(const std::string& request) const;
+  std::string clear();
 
   int port_;
   void* context_;

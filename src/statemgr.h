@@ -11,6 +11,7 @@ namespace aton {
 
 class StateMgr {
  public:
+  void clear();
   StatePtr currentTextState() const {return currentState_;}
   StatePtr registerTextState(const std::string& input);
 

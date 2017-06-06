@@ -9,6 +9,12 @@
 
 namespace aton {
 
+void StateMgr::clear() {
+  LOG(INFO) << __func__ << " - Removing [" << states_.size() << "] states";
+  states_.clear();
+  currentState_ = nullptr;
+}
+
 StatePtr StateMgr::registerTextState(const std::string& input) {
   Signature signature(input);
   auto it = states_.find(signature.fingerprint());
