@@ -33,7 +33,7 @@ void Server::processInput() {
     char buf[cfg::MAXINPUTSIZE];
     int nbytes = zmq_recv(responder_, buf, cfg::MAXINPUTSIZE, 0);
     std::string input(buf, nbytes);
-    LOG(INFO) << "Received input [" << input << "] length [" << nbytes << "]";
+    LOG(INFO) << "<<< Received input [" << input << "] length [" << nbytes << "]";
     std::string reply;
     if (isStatusRequest(input)) {
       reply = getStatus();
@@ -42,6 +42,7 @@ void Server::processInput() {
     } else {
       reply = handleRequest(input);
     }
+    LOG(INFO) << ">>> Sending reply [" << reply << "] length [" << reply.length() << "]";
     zmq_send(responder_, reply.c_str(), reply.length(), 0);
   }
 }
