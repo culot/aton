@@ -15,5 +15,9 @@ find_library(GLOG_LIBRARY glog)
 find_path(ZMQ_INCLUDE_DIR zmq.h)
 find_library(ZMQ_LIBRARY NAMES zmq)
 
-target_include_directories(aton PUBLIC ${ZMQ_INCLUDE_DIR} ${GLOG_INCLUDE_DIR})
-target_link_libraries(aton PUBLIC ${ZMQ_LIBRARY} ${GLOG_LIBRARY})
+# SQLite library
+find_path(SQLITE_INCLUDE_DIR sqlite3.h)
+find_library(SQLITE_LIBRARY NAMES sqlite3)
+
+target_include_directories(aton PUBLIC ${SQLITE_INCLUDE_DIR} ${ZMQ_INCLUDE_DIR} ${GLOG_INCLUDE_DIR})
+target_link_libraries(aton PUBLIC ${SQLITE_LIBRARY} ${ZMQ_LIBRARY} ${GLOG_LIBRARY})
