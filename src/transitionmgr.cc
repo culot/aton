@@ -57,6 +57,14 @@ std::vector<TransitionPtr> TransitionMgr::getAllTransitionsFrom(const StatePtr& 
   return transitions;
 }
 
+std::vector<TransitionPtr> TransitionMgr::getAllTransitions() const {
+  std::vector<TransitionPtr> transitions;
+  for (const auto i : transitions_) {
+    transitions.push_back(i.second);
+  }
+  return transitions;
+}
+
 TransitionPtr TransitionMgr::getTransition(const StatePtr& from, const StatePtr& to) const {
   std::vector<TransitionPtr> transitions = getAllTransitionsFrom(from);
   for (const auto transition : transitions) {
