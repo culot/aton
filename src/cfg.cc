@@ -3,6 +3,7 @@
 namespace aton {
 namespace cfg {
 
+const int SERVER_PORT = 5555;
 const int MAXINPUTSIZE = 1024;
 
 const std::string REQUEST_STATUS("STATUS");
