@@ -2,7 +2,6 @@
 #include <sstream>
 #include <ctime>
 #include <iomanip>
-#include <vector>
 
 #include <glog/logging.h>
 #include <zmq.h>

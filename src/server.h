@@ -1,6 +1,7 @@
 #pragma once
 
 #include <string>
+#include <vector>
 #include <chrono>
 
 #include "cfg.h"
@@ -15,6 +16,8 @@ class Server {
 
   void start();
   void processInput();
+  std::vector<StatePtr> getAllStates() const {return statemgr_.getAllStates();}
+  std::vector<TransitionPtr> getAllTransitions() const {return transitionmgr_.getAllTransitions();}
 
  private:
   Server() {}
