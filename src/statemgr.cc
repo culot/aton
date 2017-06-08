@@ -31,4 +31,12 @@ StatePtr StateMgr::registerTextState(const std::string& input) {
   return state;
 }
 
+std::vector<StatePtr> StateMgr::getAllStates() const {
+  std::vector<StatePtr> states;
+  for (const auto i : states_) {
+    states.push_back(i.second);
+  }
+  return states;
+}
+
 }

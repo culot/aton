@@ -2,6 +2,7 @@
 
 #include <cstdint>
 #include <map>
+#include <vector>
 #include <string>
 
 #include "state.h"
@@ -14,6 +15,7 @@ class StateMgr {
   void clear();
   StatePtr currentTextState() const {return currentState_;}
   StatePtr registerTextState(const std::string& input);
+  std::vector<StatePtr> getAllStates() const;
 
  private:
   StatePtr currentState_ {nullptr};
