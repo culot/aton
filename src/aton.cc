@@ -29,15 +29,14 @@ int main(int argc, char** argv) {
     return 1;
   }
 
-  Server srv;
   try {
-    srv.start();
+    Server::instance().start();
   } catch (const std::exception& e) {
     LOG(ERROR) << "Aborting due to following error: " << e.what();
     return 1;
   }
 
-  srv.processInput();
+  Server::instance().processInput();
 
   return 0;
 }
