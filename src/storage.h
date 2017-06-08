@@ -3,6 +3,9 @@
 #include <mutex>
 #include <string>
 
+#include "state.h"
+#include "transition.h"
+
 namespace aton {
 
 class Storage {
@@ -21,6 +24,8 @@ class Storage {
 
   void init();
   void createSchemaIfMissing();
+  void saveStates(const std::vector<StatePtr>& states);
+  void saveTransitions(const std::vector<TransitionPtr>& transitions);
   void executeStatement(const std::string& statement);
 
   std::mutex mutex_;
