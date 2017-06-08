@@ -46,9 +46,29 @@ void Storage::close() {
 void Storage::createSchemaIfMissing() {
   std::string createSchema =
       "PRAGMA foreign_keys = ON;"
+      //
+      // statetype
+      //
+      "CREATE TABLE IF NOT EXISTS statetype ("
+      "id INTEGER PRIMARY KEY,"
+      "desc TEXT NOT NULL UNIQUE);"
+      //
+      // state
+      //
+      "CREATE TABLE IF NOT EXISTS state ("
+      "id INTEGER PRIMARY KEY,"
+      "type INTEGER NOT NULL,"
+      "FOREIGN KEY (type) REFERENCES statetype (id));"
+      //
+      // textstate
+      //
       "CREATE TABLE IF NOT EXISTS textstate ("
       "id INTEGER PRIMARY KEY,"
-      "trigger TEXT NOT NULL UNIQUE);"
+      "trigger TEXT NOT NULL UNIQUE,"
+      "FOREIGN KEY (id) REFERENCES state (id));"
+      //
+      // transition
+      //
       "CREATE TABLE IF NOT EXISTS transition ("
       "id INTEGER PRIMARY KEY,"
       "state_from INTEGER NOT NULL,"
@@ -56,7 +76,7 @@ void Storage::createSchemaIfMissing() {
       "weight INTEGER NOT NULL,"
       "UNIQUE (state_from,state_to) ON CONFLICT FAIL,"
       "FOREIGN KEY (state_from) REFERENCES textstate (id),"
-      "FOREIGN KEY (state_to) REFERENCES textstate (id))";
+      "FOREIGN KEY (state_to) REFERENCES textstate (id));";
 
   LOG(INFO) << "Creating schema if missing from storage";
   executeStatement(createSchema);
