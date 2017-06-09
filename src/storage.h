@@ -24,8 +24,8 @@ class Storage {
 
   void init();
   void createSchemaIfMissing();
-  void saveStates(const std::vector<StatePtr>& states);
-  void saveTransitions(const std::vector<TransitionPtr>& transitions);
+  void saveStates(std::vector<StatePtr>& states);
+  void saveTransitions(std::vector<TransitionPtr>& transitions);
   void executeStatement(const std::string& statement);
 
   std::mutex mutex_;

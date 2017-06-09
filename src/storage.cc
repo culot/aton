@@ -38,6 +38,7 @@ void Storage::load() {
 void Storage::save() {
   LOG(INFO) << __func__ << " - Saving data";
 
+
   std::vector<StatePtr> states = Server::instance().getAllStates();
   LOG(INFO) << __func__ << " - Saving [" << states.size() << "] states";
   saveStates(states);
@@ -86,13 +87,12 @@ void Storage::createSchemaIfMissing() {
   executeStatement(createSchema);
 }
 
-void Storage::saveStates(const std::vector<StatePtr>& states) {
+void Storage::saveStates(std::vector<StatePtr>& states) {
   sqlite3_stmt* stmtState;
   std::string insertState("INSERT INTO state (type) VALUES (?)");
 
   sqlite3_stmt* stmtTextstate;
   std::string insertTextstate("INSERT INTO textstate (id,trigger) VALUES (?,?)");
-
 
   if ((sqlite3_prepare_v2(db_, insertState.c_str(), -1, &stmtState, 0) != SQLITE_OK)
       || (sqlite3_prepare_v2(db_, insertTextstate.c_str(), -1, &stmtTextstate, 0) != SQLITE_OK)) {
@@ -109,14 +109,17 @@ void Storage::saveStates(const std::vector<StatePtr>& states) {
       throw std::runtime_error("Storage error: could not save states");
     }
 
-    sqlite3_bind_int(stmtTextstate, 1, sqlite3_last_insert_rowid(db_));
+    state->setId(sqlite3_last_insert_rowid(db_));
+
+    // Here a switch based on state->type() will have to be added
+    // when support for states of types other than text will be needed
+    sqlite3_bind_int(stmtTextstate, 1, state->id());
     sqlite3_bind_text(stmtTextstate, 2, state->str().c_str(), state->str().size(), SQLITE_STATIC);
     if (sqlite3_step(stmtTextstate) != SQLITE_DONE) {
       LOG(ERROR) << __func__ << " - Error while inserting State [" << state->str()
                  << "] because [" << sqlite3_errmsg(db_) << "]";
       throw std::runtime_error("Storage error: could not save states");
     }
-
     sqlite3_reset(stmtState);
     sqlite3_reset(stmtTextstate);
   }
@@ -124,8 +127,28 @@ void Storage::saveStates(const std::vector<StatePtr>& states) {
   sqlite3_finalize(stmtTextstate);
 }
 
-void Storage::saveTransitions(const std::vector<TransitionPtr>& transitions) {
+void Storage::saveTransitions(std::vector<TransitionPtr>& transitions) {
+  sqlite3_stmt* stmtTransition;
+  std::string insertTransition("INSERT INTO transition (state_from,state_to,weight) VALUES (?,?,?)");
 
+  if (sqlite3_prepare_v2(db_, insertTransition.c_str(), -1, &stmtTransition, 0) != SQLITE_OK) {
+    LOG(ERROR) << __func__ << " - Could not prepare statements because ["
+               << sqlite3_errmsg(db_) << "]";
+    throw std::runtime_error("Storage error: could not prepare statements");
+  }
+
+  for (const auto transition : transitions) {
+    sqlite3_bind_int(stmtTransition, 1, transition->from()->id());
+    sqlite3_bind_int(stmtTransition, 2, transition->to()->id());
+    sqlite3_bind_int(stmtTransition, 3, transition->weight());
+    if (sqlite3_step(stmtTransition) != SQLITE_DONE) {
+      LOG(ERROR) << __func__ << " - Error while inserting transition because ["
+                 << sqlite3_errmsg(db_) << "]";
+      throw std::runtime_error("Storage error: could not save transitions");
+    }
+    sqlite3_reset(stmtTransition);
+  }
+  sqlite3_finalize(stmtTransition);
 }
 
 void Storage::executeStatement(const std::string& statement) {
