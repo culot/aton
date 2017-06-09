@@ -38,6 +38,7 @@ void Storage::load() {
 void Storage::save() {
   LOG(INFO) << __func__ << " - Saving data";
 
+  clearSchema();
 
   std::vector<StatePtr> states = Server::instance().getAllStates();
   LOG(INFO) << __func__ << " - Saving [" << states.size() << "] states";
@@ -55,8 +56,17 @@ void Storage::close() {
   LOG(INFO) << __func__ << " - Database [" << cfg::DB_FILE << "] successfully closed";
 }
 
+void Storage::clearSchema() {
+  std::string clearSchema(
+      "DELETE from transition;"
+      "DELETE from textstate;"
+      "DELETE from state;");
+  executeStatement(clearSchema);
+  LOG(INFO) << "Schema was cleared";
+}
+
 void Storage::createSchemaIfMissing() {
-  std::string createSchema =
+  std::string createSchema(
       "PRAGMA foreign_keys = ON;"
       //
       // state
@@ -81,7 +91,7 @@ void Storage::createSchemaIfMissing() {
       "weight INTEGER NOT NULL,"
       "UNIQUE (state_from,state_to) ON CONFLICT FAIL,"
       "FOREIGN KEY (state_from) REFERENCES textstate (id),"
-      "FOREIGN KEY (state_to) REFERENCES textstate (id));";
+      "FOREIGN KEY (state_to) REFERENCES textstate (id));");
 
   LOG(INFO) << "Creating schema if missing from storage";
   executeStatement(createSchema);

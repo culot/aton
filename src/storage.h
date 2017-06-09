@@ -23,6 +23,7 @@ class Storage {
   void operator=(const Storage&) = delete;
 
   void init();
+  void clearSchema();
   void createSchemaIfMissing();
   void saveStates(std::vector<StatePtr>& states);
   void saveTransitions(std::vector<TransitionPtr>& transitions);
