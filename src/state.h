@@ -17,6 +17,8 @@ class State {
   virtual ~State() {}
   virtual std::string str() const = 0;
   virtual uint64_t signature() const = 0;
+  uint64_t id() const {return id_;}
+  void setId(uint64_t id) {id_ = id;}
   int type() const {return type_;}
 
   virtual bool operator==(const State& rhs) const = 0;
@@ -32,6 +34,7 @@ class State {
  private:
   virtual void print(std::ostream& out) const = 0;
 
+  uint64_t id_ {0};
   const Type type_;
 };
 
