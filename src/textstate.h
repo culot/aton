@@ -2,6 +2,7 @@
 
 #include <ostream>
 #include <string>
+#include <cstdint>
 
 #include "signature.h"
 #include "statemgr.h"
@@ -12,8 +13,8 @@ namespace aton {
 
 class TextState : public State {
  public:
-  TextState(const std::string& input, const Signature& signature)
-      : State(State::Type::text), trigger_(input), signature_(signature) {}
+  TextState(uint64_t id, const std::string& input, const Signature& signature)
+      : State(State::Type::text, id), trigger_(input), signature_(signature) {}
 
   std::string str() const override {return trigger_;}
   uint64_t signature() const override {return signature_.fingerprint();}
