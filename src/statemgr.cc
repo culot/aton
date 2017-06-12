@@ -1,5 +1,6 @@
 #include <exception>
 #include <memory>
+#include <algorithm>
 
 #include <glog/logging.h>
 
@@ -50,6 +51,17 @@ std::vector<StatePtr> StateMgr::getAllStates() const {
     states.push_back(i.second);
   }
   return states;
+}
+
+StatePtr StateMgr::getStateWithId(uint64_t id) const {
+  auto it = std::find_if(states_.begin(),
+                         states_.end(),
+                         [=](const std::pair<uint64_t, StatePtr>& s) {return s.second->id() == id;});
+  if (it != states_.end()) {
+    return it->second;
+  } else {
+    return nullptr;
+  }
 }
 
 }
