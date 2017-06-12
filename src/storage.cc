@@ -61,12 +61,32 @@ void Storage::loadStates() {
   if (rc != SQLITE_DONE) {
     LOG(ERROR) << __func__ << " - Could not load states because [" << sqlite3_errmsg(db_) << "]";
     sqlite3_finalize(stmtTextstate);
-    throw std::runtime_error("Storage error: statement could not prepare statements");
+    throw std::runtime_error("Storage error: could not load states");
   }
   sqlite3_finalize(stmtTextstate);
 }
 
 void Storage::loadTransitions() {
+  sqlite3_stmt* stmtTransition;
+  std::string selectTransition("SELECT state_from,state_to,weight FROM transition");
+  if (sqlite3_prepare_v2(db_, selectTransition.c_str(), -1, &stmtTransition, nullptr) != SQLITE_OK) {
+    LOG(ERROR) << __func__ << " - Could not prepare [" << selectTransition
+               << "] because [" << sqlite3_errmsg(db_) << "]";
+    throw std::runtime_error("Storage error: statement could not prepare statements");
+  }
+  int rc;
+  while ((rc = sqlite3_step(stmtTransition)) == SQLITE_ROW) {
+    uint64_t idFrom = sqlite3_column_int(stmtTransition, 0);
+    uint64_t idTo = sqlite3_column_int(stmtTransition, 1);
+    int weight = sqlite3_column_int(stmtTransition, 2);
+    Server::instance().registerTransition(idFrom, idTo, weight);
+  }
+  if (rc != SQLITE_DONE) {
+    LOG(ERROR) << __func__ << " - Could not load transitions because [" << sqlite3_errmsg(db_) << "]";
+    sqlite3_finalize(stmtTransition);
+    throw std::runtime_error("Storage error: could not load transitions");
+  }
+  sqlite3_finalize(stmtTransition);
 }
 
 void Storage::save() {
