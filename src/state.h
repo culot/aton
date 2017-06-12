@@ -29,7 +29,7 @@ class State {
   }
 
  protected:
-  explicit State(Type type) : type_(type) {}
+  State(Type type, uint64_t id) : type_(type), id_(id) {}
 
  private:
   virtual void print(std::ostream& out) const = 0;
