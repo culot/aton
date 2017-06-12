@@ -14,10 +14,12 @@ class StateMgr {
  public:
   void clear();
   StatePtr currentTextState() const {return currentState_;}
-  StatePtr registerTextState(const std::string& input);
+  StatePtr registerState(State::Type type, const std::string& input, uint64_t id = 0);
   std::vector<StatePtr> getAllStates() const;
 
  private:
+  StatePtr registerTextState(const std::string& input, uint64_t id = 0);
+
   StatePtr currentState_ {nullptr};
   std::map<uint64_t, StatePtr> states_;
 };
