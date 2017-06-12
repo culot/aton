@@ -25,6 +25,8 @@ class Storage {
   void init();
   void clearSchema();
   void createSchemaIfMissing();
+  void loadStates();
+  void loadTransitions();
   void saveStates(std::vector<StatePtr>& states);
   void saveTransitions(std::vector<TransitionPtr>& transitions);
   void executeStatement(const std::string& statement);

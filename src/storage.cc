@@ -1,10 +1,12 @@
 #include <exception>
+#include <cstdint>
 
 #include <glog/logging.h>
 #include <sqlite3.h>
 
 #include "cfg.h"
 #include "server.h"
+#include "state.h"
 
 #include "storage.h"
 
@@ -33,6 +35,38 @@ Storage::~Storage() {
 
 void Storage::load() {
   LOG(INFO) << __func__ << " - Loading data";
+
+  LOG(INFO) << __func__ << " - Loading states";
+  loadStates();
+
+  LOG(INFO) << __func__ << " - Loading transitions";
+  loadTransitions();
+}
+
+void Storage::loadStates() {
+  sqlite3_stmt* stmtTextstate;
+  std::string selectTextstate("SELECT id,trigger FROM textstate");
+  if (sqlite3_prepare_v2(db_, selectTextstate.c_str(), -1, &stmtTextstate, nullptr) != SQLITE_OK) {
+    LOG(ERROR) << __func__ << " - Could not prepare [" << selectTextstate
+               << "] because [" << sqlite3_errmsg(db_) << "]";
+    throw std::runtime_error("Storage error: statement could not prepare statements");
+  }
+  int rc;
+  while ((rc = sqlite3_step(stmtTextstate)) == SQLITE_ROW) {
+    uint64_t id = sqlite3_column_int(stmtTextstate, 0);
+    // The retrieved data is plain ASCII, so the cast is safe here
+    std::string trigger = std::string(reinterpret_cast<const char*>(sqlite3_column_text(stmtTextstate, 1)));
+    Server::instance().registerState(State::Type::text, trigger, id);
+  }
+  if (rc != SQLITE_DONE) {
+    LOG(ERROR) << __func__ << " - Could not load states because [" << sqlite3_errmsg(db_) << "]";
+    sqlite3_finalize(stmtTextstate);
+    throw std::runtime_error("Storage error: statement could not prepare statements");
+  }
+  sqlite3_finalize(stmtTextstate);
+}
+
+void Storage::loadTransitions() {
 }
 
 void Storage::save() {
