@@ -3,9 +3,11 @@
 #include <string>
 #include <vector>
 #include <chrono>
+#include <cstdint>
 
 #include "cfg.h"
 #include "statemgr.h"
+#include "state.h"
 #include "transitionmgr.h"
 
 namespace aton {
@@ -18,6 +20,7 @@ class Server {
   void processInput();
   std::vector<StatePtr> getAllStates() const {return statemgr_.getAllStates();}
   std::vector<TransitionPtr> getAllTransitions() const {return transitionmgr_.getAllTransitions();}
+  StatePtr registerState(State::Type type, const std::string& trigger, uint64_t id = 0) {return statemgr_.registerState(type, trigger, id);}
 
  private:
   Server() {}
