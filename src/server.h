@@ -1,20 +1,35 @@
 #pragma once
 
 #include <string>
+#include <vector>
 #include <chrono>
+#include <cstdint>
 
+#include "cfg.h"
 #include "statemgr.h"
+#include "state.h"
 #include "transitionmgr.h"
+#include "transition.h"
 
 namespace aton {
 
 class Server {
  public:
-  explicit Server(int port = 5555) : port_(port) {}
+  static Server& instance() {static Server instance_; return instance_;}
+
   void start();
   void processInput();
+  std::vector<StatePtr> getAllStates() const {return statemgr_.getAllStates();}
+  std::vector<TransitionPtr> getAllTransitions() const {return transitionmgr_.getAllTransitions();}
+  StatePtr registerState(State::Type type, const std::string& trigger, uint64_t id = 0) {return statemgr_.registerState(type, trigger, id);}
+  TransitionPtr registerTransition(uint64_t from, uint64_t to, int weight);
 
  private:
+  Server() {}
+  ~Server() {}
+  Server(const Server&) = delete;
+  void operator=(const Server&) = delete;
+
   std::string handleRequest(const std::string& request);
   std::string formatReply(const std::vector<TransitionPtr>& transitions) const;
   std::string getStatus() const;
@@ -22,7 +37,7 @@ class Server {
   bool isClearRequest(const std::string& request) const;
   std::string clear();
 
-  int port_;
+  int port_ {cfg::SERVER_PORT};
   void* context_;
   void* responder_;
   StateMgr statemgr_;

@@ -10,14 +10,15 @@ namespace aton {
 
 class TransitionMgr {
  public:
-  TransitionPtr registerTransition(const StatePtr& from, const StatePtr& to);
+  TransitionPtr registerTransition(const StatePtr& from, const StatePtr& to, int weight = 1);
   TransitionPtr getMostProbableTransitionFrom(const StatePtr& from) const;
   std::vector<TransitionPtr> getAllTransitionsFrom(const StatePtr& from) const;
+  std::vector<TransitionPtr> getAllTransitions() const;
   void clear();
 
  private:
   bool isValidTransition(const StatePtr& from, const StatePtr& to) const;
-  TransitionPtr createTransition(const StatePtr& from, const StatePtr& to);
+  TransitionPtr createTransition(const StatePtr& from, const StatePtr& to, int weight);
   TransitionPtr getTransition(const StatePtr& from, const StatePtr& to) const;
   void increaseTransitionWeight(TransitionPtr& transition) const;
 

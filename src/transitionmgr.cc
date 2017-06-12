@@ -6,7 +6,7 @@
 
 namespace aton {
 
-TransitionPtr TransitionMgr::registerTransition(const StatePtr& from, const StatePtr& to) {
+TransitionPtr TransitionMgr::registerTransition(const StatePtr& from, const StatePtr& to, int weight) {
   if (!isValidTransition(from, to)) {
     LOG(INFO) << __func__ << " - No transition to be created";
     return nullptr;
@@ -14,7 +14,7 @@ TransitionPtr TransitionMgr::registerTransition(const StatePtr& from, const Stat
     TransitionPtr transition = getTransition(from, to);
     if (transition == nullptr) {
       LOG(INFO) << __func__ << " - Transition must be created";
-      return createTransition(from, to);
+      return createTransition(from, to, weight);
     } else {
       LOG(INFO) << __func__ << " - Transition already exists";
       increaseTransitionWeight(transition);
@@ -23,10 +23,10 @@ TransitionPtr TransitionMgr::registerTransition(const StatePtr& from, const Stat
   }
 }
 
-TransitionPtr TransitionMgr::createTransition(const StatePtr& from, const StatePtr& to) {
+TransitionPtr TransitionMgr::createTransition(const StatePtr& from, const StatePtr& to, int weight) {
   LOG(INFO) << __func__ << " - Creating new transition from ["
-            << *from << "] to [" << *to << "]";
-  TransitionPtr transition = std::make_shared<Transition>(from, to);
+            << *from << "] to [" << *to << "] with initial weight [" << weight << "]";
+  TransitionPtr transition = std::make_shared<Transition>(from, to, weight);
   transitions_.emplace(from->signature(), transition);
   return transition;
 }
@@ -54,6 +54,14 @@ std::vector<TransitionPtr> TransitionMgr::getAllTransitionsFrom(const StatePtr& 
     transitions.push_back(transition);
   }
   LOG(INFO) << __func__ << " - Found [" << transitions.size() << "] transitions from [" << *from << "]";
+  return transitions;
+}
+
+std::vector<TransitionPtr> TransitionMgr::getAllTransitions() const {
+  std::vector<TransitionPtr> transitions;
+  for (const auto i : transitions_) {
+    transitions.push_back(i.second);
+  }
   return transitions;
 }
 

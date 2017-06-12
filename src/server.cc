@@ -2,7 +2,6 @@
 #include <sstream>
 #include <ctime>
 #include <iomanip>
-#include <vector>
 
 #include <glog/logging.h>
 #include <zmq.h>
@@ -49,8 +48,9 @@ void Server::processInput() {
 }
 
 std::string Server::handleRequest(const std::string& request) {
+  // TODO statemgr should keep track of current state, not server
   StatePtr currentState = statemgr_.currentTextState();
-  StatePtr newState = statemgr_.registerTextState(request);
+  StatePtr newState = statemgr_.registerState(State::Type::text, request);
   transitionmgr_.registerTransition(currentState, newState);
 
   std::vector<TransitionPtr> transitions = transitionmgr_.getAllTransitionsFrom(newState);
@@ -95,6 +95,19 @@ bool Server::isStatusRequest(const std::string& request) const {
 
 bool Server::isClearRequest(const std::string& request) const {
   return request == cfg::REQUEST_CLEAR;
+}
+
+// This method is used when loading data from the transition database table.
+// The states of the transition are represented by the uint64_t identifiers,
+// so we must retrieve the corresponding states before actually creating the
+// transition. This implies a dependencies when loading from the database:
+// states must necessarily be loaded before transitions.
+TransitionPtr Server::registerTransition(uint64_t from, uint64_t to, int weight) {
+  StatePtr stateFrom = statemgr_.getStateWithId(from);
+  StatePtr stateTo = statemgr_.getStateWithId(to);
+  LOG(INFO) << __func__ << " - Registering transition from ["
+            << *stateFrom << "] to [" << *stateTo << "] with weight [" << weight << "]";
+  return transitionmgr_.registerTransition(stateFrom, stateTo, weight);
 }
 
 }
