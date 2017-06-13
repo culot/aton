@@ -14,7 +14,6 @@ namespace aton {
 void StateMgr::clear() {
   LOG(INFO) << __func__ << " - Removing [" << states_.size() << "] states";
   states_.clear();
-  currentState_ = nullptr;
 }
 
 StatePtr StateMgr::registerState(State::Type type, const std::string& input, uint64_t id) {
@@ -41,8 +40,18 @@ StatePtr StateMgr::registerTextState(const std::string& input, uint64_t id) {
   } else {
     state = it->second;
   }
-  currentState_ = state;
+  currentUnit_.push_back(state);
   return state;
+}
+
+StatePtr StateMgr::getPreviousState() const {
+  int unitSize = currentUnit_.size();
+  if (unitSize <= 1) {
+    // no previous states recorded
+    return nullptr;
+  } else {
+    return currentUnit_.at(unitSize - 2);
+  }
 }
 
 std::vector<StatePtr> StateMgr::getAllStates() const {
