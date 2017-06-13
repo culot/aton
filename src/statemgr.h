@@ -22,8 +22,7 @@ class StateMgr {
   StatePtr registerTextState(const std::string& input, uint64_t id = 0);
 
   StatePtr currentState_ {nullptr};
-  using states_c = std::map<uint64_t, StatePtr>;
-  states_c states_;
+  std::map<uint64_t, StatePtr> states_;
 };
 
 }
