@@ -19,11 +19,14 @@ int main (void) {
   common::sendAndReceive(requester, "b", "");
   common::sendAndReceive(requester, "a", "");
   common::sendAndReceive(requester, "l", "");
+  common::sendJuncture(requester);
   common::sendAndReceive(requester, "t", "");
   common::sendAndReceive(requester, "a", "l");
   common::sendAndReceive(requester, "c", "");
+  common::sendJuncture(requester);
   common::sendAndReceive(requester, "b", "a");
   common::sendAndReceive(requester, "a", "l");
+  common::sendJuncture(requester);
   common::sendAndReceive(requester, "t", "a");
   common::sendAndReceive(requester, "a", "c");
 
