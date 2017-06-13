@@ -48,10 +48,9 @@ void Server::processInput() {
 }
 
 std::string Server::handleRequest(const std::string& request) {
-  // TODO statemgr should keep track of current state, not server
-  StatePtr currentState = statemgr_.currentTextState();
   StatePtr newState = statemgr_.registerState(State::Type::text, request);
-  transitionmgr_.registerTransition(currentState, newState);
+  StatePtr previousState = statemgr_.getPreviousState();
+  transitionmgr_.registerTransition(previousState, newState);
 
   std::vector<TransitionPtr> transitions = transitionmgr_.getAllTransitionsFrom(newState);
   if (!transitions.empty()) {
