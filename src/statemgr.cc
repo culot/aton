@@ -73,4 +73,11 @@ StatePtr StateMgr::getStateWithId(uint64_t id) const {
   }
 }
 
+void StateMgr::endUnit() {
+  // TODO create multiState with size - 1 elements of currentUnit
+  // + register transition from this multiState to last element of currentUnit
+  // note: Signature must handle a constructor with a vector of strings
+  currentUnit_.clear();
+}
+
 }

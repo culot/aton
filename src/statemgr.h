@@ -17,6 +17,7 @@ class StateMgr {
   StatePtr getPreviousState() const;
   std::vector<StatePtr> getAllStates() const;
   StatePtr getStateWithId(uint64_t id) const;
+  void endUnit();
 
  private:
   StatePtr registerTextState(const std::string& input, uint64_t id = 0);
