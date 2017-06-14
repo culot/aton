@@ -90,6 +90,8 @@ std::string Server::clear() {
 }
 
 std::string Server::handleJuncture() {
+  LOG(INFO) << "Juncture received, ending current unit";
+  statemgr_.endUnit();
   return cfg::REQUEST_JUNCTURE;
 }
 
