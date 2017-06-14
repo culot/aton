@@ -35,7 +35,9 @@ void Server::processInput() {
     std::string input(buf, nbytes);
     LOG(INFO) << "<<< Received input [" << input << "] length [" << nbytes << "]";
     std::string reply;
-    if (isStatusRequest(input)) {
+    if (isJunctureRequest(input)) {
+      reply = handleJuncture();
+    } else if (isStatusRequest(input)) {
       reply = getStatus();
     } else if (isClearRequest(input)) {
       reply = clear();
@@ -88,12 +90,20 @@ std::string Server::clear() {
   return "Server memory cleared";
 }
 
+std::string Server::handleJuncture() {
+  return cfg::REQUEST_JUNCTURE;
+}
+
 bool Server::isStatusRequest(const std::string& request) const {
   return request == cfg::REQUEST_STATUS;
 }
 
 bool Server::isClearRequest(const std::string& request) const {
   return request == cfg::REQUEST_CLEAR;
+}
+
+bool Server::isJunctureRequest(const std::string& request) const {
+  return request == cfg::REQUEST_JUNCTURE;
 }
 
 // This method is used when loading data from the transition database table.

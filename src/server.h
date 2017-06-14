@@ -35,7 +35,9 @@ class Server {
   std::string getStatus() const;
   bool isStatusRequest(const std::string& request) const;
   bool isClearRequest(const std::string& request) const;
+  bool isJunctureRequest(const std::string& request) const;
   std::string clear();
+  std::string handleJuncture();
 
   int port_ {cfg::SERVER_PORT};
   void* context_;
