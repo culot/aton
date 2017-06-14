@@ -35,15 +35,14 @@ void Server::processInput() {
     std::string input(buf, nbytes);
     LOG(INFO) << "<<< Received input [" << input << "] length [" << nbytes << "]";
     std::string reply;
-    if (isJunctureRequest(input)) {
-      reply = handleJuncture();
-    } else if (isStatusRequest(input)) {
-      reply = getStatus();
-    } else if (isClearRequest(input)) {
-      reply = clear();
+
+    auto it = inputHandlers_.find(input);
+    if (it != inputHandlers_.end()) {
+      reply = (it->second)(*this);
     } else {
       reply = handleRequest(input);
     }
+
     LOG(INFO) << ">>> Sending reply [" << reply << "] length [" << reply.length() << "]";
     zmq_send(responder_, reply.c_str(), reply.length(), 0);
   }
@@ -74,7 +73,7 @@ std::string Server::formatReply(const std::vector<TransitionPtr>& transitions) c
   return reply;
 }
 
-std::string Server::getStatus() const {
+std::string Server::getStatus() {
   std::string status("Server UP since ");
   std::stringstream ss;
   auto startTimeT = std::chrono::system_clock::to_time_t(startTime_);
@@ -92,18 +91,6 @@ std::string Server::clear() {
 
 std::string Server::handleJuncture() {
   return cfg::REQUEST_JUNCTURE;
-}
-
-bool Server::isStatusRequest(const std::string& request) const {
-  return request == cfg::REQUEST_STATUS;
-}
-
-bool Server::isClearRequest(const std::string& request) const {
-  return request == cfg::REQUEST_CLEAR;
-}
-
-bool Server::isJunctureRequest(const std::string& request) const {
-  return request == cfg::REQUEST_JUNCTURE;
 }
 
 // This method is used when loading data from the transition database table.
