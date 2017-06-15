@@ -18,7 +18,7 @@ class MultiState : public State {
     std::string str;
     std::for_each(states_.begin(),
                   states_.end(),
-                  [&](StatePtr& state){str.append(state.str());});
+                  [&](const StatePtr& state){str.append(state->str());});
     return str;
   }
   uint64_t signature() const override {return signature_.fingerprint();}
