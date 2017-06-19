@@ -6,6 +6,7 @@
 
 #include "signature.h"
 #include "textstate.h"
+#include "multistate.h"
 
 #include "statemgr.h"
 
@@ -28,6 +29,7 @@ StatePtr StateMgr::registerState(State::Type type, const std::string& input, uin
   }
 }
 
+// TODO refactor registerTextState and registerMultiState
 StatePtr StateMgr::registerTextState(const std::string& input, uint64_t id) {
   Signature signature(input);
   auto it = states_.find(signature.fingerprint());
@@ -41,17 +43,29 @@ StatePtr StateMgr::registerTextState(const std::string& input, uint64_t id) {
     state = it->second;
   }
   currentUnit_.push_back(state);
+  lastState_ = state;
   return state;
 }
 
-StatePtr StateMgr::getPreviousState() const {
-  int unitSize = currentUnit_.size();
-  if (unitSize <= 1) {
-    // no previous states recorded
-    return nullptr;
-  } else {
-    return currentUnit_.at(unitSize - 2);
+StatePtr StateMgr::registerMultiState(const std::vector<StatePtr>& states, uint64_t id) {
+  std::vector<std::string> traits;
+  for (const auto state : states) {
+    traits.push_back(state->str());
   }
+  Signature signature(traits);
+  auto it = states_.find(signature.fingerprint());
+  StatePtr state;
+  if (it == states_.end()) {
+    LOG(INFO) << __func__ << " - Creating new state with id [" << id
+              << "] and fingerprint [" << signature.fingerprint() << "]";
+    state = std::make_shared<MultiState>(id, states, signature);
+    states_[signature.fingerprint()] = state;
+  } else {
+    state = it->second;
+  }
+  currentUnit_.push_back(state);
+  lastState_ = state;
+  return state;
 }
 
 std::vector<StatePtr> StateMgr::getAllStates() const {
@@ -76,7 +90,10 @@ StatePtr StateMgr::getStateWithId(uint64_t id) const {
 void StateMgr::endUnit() {
   // TODO create multiState with size - 1 elements of currentUnit
   // + register transition from this multiState to last element of currentUnit
-  // note: Signature must handle a constructor with a vector of strings
+  // note: move transitionmgr to be a member of statemgr?
+  std::vector<StatePtr> states = currentUnit_;
+  states.pop_back();
+  StatePtr multiState = registerMultiState(states);
   currentUnit_.clear();
 }
 

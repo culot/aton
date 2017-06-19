@@ -49,9 +49,9 @@ void Server::processInput() {
 }
 
 std::string Server::handleRequest(const std::string& request) {
+  StatePtr lastState = statemgr_.getLastState();
   StatePtr newState = statemgr_.registerState(State::Type::text, request);
-  StatePtr previousState = statemgr_.getPreviousState();
-  transitionmgr_.registerTransition(previousState, newState);
+  transitionmgr_.registerTransition(lastState, newState);
 
   std::vector<TransitionPtr> transitions = transitionmgr_.getAllTransitionsFrom(newState);
   if (!transitions.empty()) {
