@@ -102,12 +102,10 @@ StatePtr StateMgr::getStateWithId(uint64_t id) const {
 }
 
 void StateMgr::endUnit() {
-  // TODO create multiState with size - 1 elements of currentUnit
-  // + register transition from this multiState to last element of currentUnit
-  // note: move transitionmgr to be a member of statemgr?
-  std::vector<StatePtr> states = currentUnit_;
-  states.pop_back();
-  StatePtr multiState = registerMultiState(states);
+  currentState_ = currentUnit_.back();
+  currentUnit_.pop_back();
+  StatePtr multiState = registerMultiState(currentUnit_);
+  transitionmgr_.registerTransition(multiState, currentState_);
   currentUnit_.clear();
 }
 
