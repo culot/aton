@@ -65,6 +65,27 @@ std::vector<TransitionPtr> TransitionMgr::getAllTransitions() const {
   return transitions;
 }
 
+std::string TransitionMgr::getAllTransitionsAsStringFrom(const StatePtr& state) const {
+  std::vector<TransitionPtr> transitions = getAllTransitionsFrom(state);
+  if (transitions.empty()) {
+    return std::string();
+  } else {
+    return formatTransitionsString(transitions);
+  }
+}
+
+std::string TransitionMgr::formatTransitionsString(const std::vector<TransitionPtr>& transitions) const {
+  static const std::string separator("|");
+  std::string reply;
+  for (const auto transition : transitions) {
+    reply.append(transition->to()->str());
+    reply.append(separator);
+  }
+  // Remove extraneous last separator
+  reply.pop_back();
+  return reply;
+}
+
 TransitionPtr TransitionMgr::getTransition(const StatePtr& from, const StatePtr& to) const {
   std::vector<TransitionPtr> transitions = getAllTransitionsFrom(from);
   for (const auto transition : transitions) {
