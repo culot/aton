@@ -13,23 +13,41 @@
 namespace aton {
 
 void StateMgr::clear() {
+  transitionmgr_.clear();
   LOG(INFO) << __func__ << " - Removing [" << states_.size() << "] states";
   states_.clear();
 }
 
 StatePtr StateMgr::registerState(State::Type type, const std::string& input, uint64_t id) {
+  StatePtr newState;
   switch (type) {
     case State::Type::text:
       LOG(INFO) << __func__ << " - Registering text state with id [" << id << "]";
-      return registerTextState(input, id);
+      newState = registerTextState(input, id);
       break;
     default:
       LOG(ERROR) << __func__ << " - State type not yet supported";
       throw std::runtime_error("State type not yet supported");
   }
+  transitionmgr_.registerTransition(currentState_, newState);
+  currentState_ = newState;
+  currentUnit_.push_back(currentState_);
+  return currentState_;
 }
 
-// TODO refactor registerTextState and registerMultiState
+// This method is used when loading data from the transition database table.
+// The states of the transition are represented by the uint64_t identifiers,
+// so we must retrieve the corresponding states before actually creating the
+// transition. This implies a dependency when loading from the database:
+// states must necessarily be loaded before transitions.
+TransitionPtr StateMgr::registerTransition(uint64_t from, uint64_t to, int weight) {
+  StatePtr stateFrom = getStateWithId(from);
+  StatePtr stateTo = getStateWithId(to);
+  LOG(INFO) << __func__ << " - Registering transition from ["
+            << *stateFrom << "] to [" << *stateTo << "] with weight [" << weight << "]";
+  return transitionmgr_.registerTransition(stateFrom, stateTo, weight);
+}
+
 StatePtr StateMgr::registerTextState(const std::string& input, uint64_t id) {
   Signature signature(input);
   auto it = states_.find(signature.fingerprint());
@@ -42,8 +60,6 @@ StatePtr StateMgr::registerTextState(const std::string& input, uint64_t id) {
   } else {
     state = it->second;
   }
-  currentUnit_.push_back(state);
-  lastState_ = state;
   return state;
 }
 
@@ -63,8 +79,6 @@ StatePtr StateMgr::registerMultiState(const std::vector<StatePtr>& states, uint6
   } else {
     state = it->second;
   }
-  currentUnit_.push_back(state);
-  lastState_ = state;
   return state;
 }
 

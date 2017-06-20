@@ -5,8 +5,6 @@
 #include <sqlite3.h>
 
 #include "cfg.h"
-#include "server.h"
-#include "state.h"
 
 #include "storage.h"
 
@@ -33,17 +31,17 @@ Storage::~Storage() {
   close();
 }
 
-void Storage::load() {
+void Storage::load(StateMgr& statemgr) {
   LOG(INFO) << __func__ << " - Loading data";
 
   LOG(INFO) << __func__ << " - Loading states";
-  loadStates();
+  loadStates(statemgr);
 
   LOG(INFO) << __func__ << " - Loading transitions";
-  loadTransitions();
+  loadTransitions(statemgr);
 }
 
-void Storage::loadStates() {
+void Storage::loadStates(StateMgr& statemgr) {
   sqlite3_stmt* stmtTextstate;
   std::string selectTextstate("SELECT id,trigger FROM textstate");
   if (sqlite3_prepare_v2(db_, selectTextstate.c_str(), -1, &stmtTextstate, nullptr) != SQLITE_OK) {
@@ -56,7 +54,7 @@ void Storage::loadStates() {
     uint64_t id = sqlite3_column_int(stmtTextstate, 0);
     // The retrieved data is plain ASCII, so the cast is safe here
     std::string trigger = std::string(reinterpret_cast<const char*>(sqlite3_column_text(stmtTextstate, 1)));
-    Server::instance().registerState(State::Type::text, trigger, id);
+    statemgr.registerState(State::Type::text, trigger, id);
   }
   if (rc != SQLITE_DONE) {
     LOG(ERROR) << __func__ << " - Could not load states because [" << sqlite3_errmsg(db_) << "]";
@@ -66,7 +64,7 @@ void Storage::loadStates() {
   sqlite3_finalize(stmtTextstate);
 }
 
-void Storage::loadTransitions() {
+void Storage::loadTransitions(StateMgr& statemgr) {
   sqlite3_stmt* stmtTransition;
   std::string selectTransition("SELECT state_from,state_to,weight FROM transition");
   if (sqlite3_prepare_v2(db_, selectTransition.c_str(), -1, &stmtTransition, nullptr) != SQLITE_OK) {
@@ -79,7 +77,7 @@ void Storage::loadTransitions() {
     uint64_t idFrom = sqlite3_column_int(stmtTransition, 0);
     uint64_t idTo = sqlite3_column_int(stmtTransition, 1);
     int weight = sqlite3_column_int(stmtTransition, 2);
-    Server::instance().registerTransition(idFrom, idTo, weight);
+    statemgr.registerTransition(idFrom, idTo, weight);
   }
   if (rc != SQLITE_DONE) {
     LOG(ERROR) << __func__ << " - Could not load transitions because [" << sqlite3_errmsg(db_) << "]";
@@ -89,16 +87,16 @@ void Storage::loadTransitions() {
   sqlite3_finalize(stmtTransition);
 }
 
-void Storage::save() {
+void Storage::save(StateMgr& statemgr) {
   LOG(INFO) << __func__ << " - Saving data";
 
   clearSchema();
 
-  std::vector<StatePtr> states = Server::instance().getAllStates();
+  std::vector<StatePtr> states = statemgr.getAllStates();
   LOG(INFO) << __func__ << " - Saving [" << states.size() << "] states";
   saveStates(states);
 
-  std::vector<TransitionPtr> transitions = Server::instance().getAllTransitions();
+  std::vector<TransitionPtr> transitions = statemgr.getAllTransitions();
   LOG(INFO) << __func__ << " - Saving [" << transitions.size() << "] transitions";
   saveTransitions(transitions);
 
