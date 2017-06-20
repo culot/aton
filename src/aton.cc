@@ -13,21 +13,13 @@ using namespace aton;
 
 void sigHandler(int signal) {
   LOG(INFO) << "Received signal [" << signal << "]";
-  Storage::instance().save();
-  Storage::instance().close();
+  Server::instance().terminate();
 }
 
 int main(int argc, char** argv) {
   google::InitGoogleLogging(argv[0]);
 
   std::signal(SIGINT, sigHandler);
-
-  try {
-    Storage::instance().load();
-  } catch (const std::exception& e) {
-    LOG(ERROR) << "Aborting due to following error: " << e.what();
-    return 1;
-  }
 
   try {
     Server::instance().start();
