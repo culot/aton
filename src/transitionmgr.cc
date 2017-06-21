@@ -31,6 +31,15 @@ TransitionPtr TransitionMgr::createTransition(const StatePtr& from, const StateP
   return transition;
 }
 
+std::vector<StatePtr> TransitionMgr::predictAllStatesFrom(const StatePtr& from) const {
+  std::vector<TransitionPtr> transitions = getAllTransitionsFrom(from);
+  std::vector<StatePtr> states;
+  for (const auto transition : transitions) {
+    states.push_back(transition->to());
+  }
+  return states;
+}
+
 std::vector<TransitionPtr> TransitionMgr::getAllTransitionsFrom(const StatePtr& from) const {
   uint64_t fromStateSig = from->signature();
   auto range = transitions_.equal_range(fromStateSig);
@@ -50,27 +59,6 @@ std::vector<TransitionPtr> TransitionMgr::getAllTransitions() const {
     transitions.push_back(i.second);
   }
   return transitions;
-}
-
-std::string TransitionMgr::getAllTransitionsAsStringFrom(const StatePtr& state) const {
-  std::vector<TransitionPtr> transitions = getAllTransitionsFrom(state);
-  if (transitions.empty()) {
-    return std::string();
-  } else {
-    return formatTransitionsString(transitions);
-  }
-}
-
-std::string TransitionMgr::formatTransitionsString(const std::vector<TransitionPtr>& transitions) const {
-  static const std::string separator("|");
-  std::string reply;
-  for (const auto transition : transitions) {
-    reply.append(transition->to()->str());
-    reply.append(separator);
-  }
-  // Remove extraneous last separator
-  reply.pop_back();
-  return reply;
 }
 
 TransitionPtr TransitionMgr::getTransition(const StatePtr& from, const StatePtr& to) const {
