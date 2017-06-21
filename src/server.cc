@@ -2,6 +2,7 @@
 #include <sstream>
 #include <ctime>
 #include <iomanip>
+#include <vector>
 
 #include <glog/logging.h>
 #include <zmq.h>
@@ -57,8 +58,9 @@ void Server::processInput() {
 }
 
 std::string Server::handleRequest(const std::string& request) {
-  StatePtr newState = statemgr_.registerState(State::Type::text, request);
-  return statemgr_.getAllTransitionsAsStringFrom(newState);
+  statemgr_.registerState(State::Type::text, request);
+  std::vector<StatePtr> predictions = statemgr_.predictNextStates();
+  return statemgr_.formatAsString(predictions);
 }
 
 std::string Server::getStatus() {
