@@ -63,21 +63,22 @@ StatePtr StateMgr::registerTextState(const std::string& input, uint64_t id) {
   return state;
 }
 
-StatePtr StateMgr::registerMultiState(const std::vector<StatePtr>& states, uint64_t id) {
+StatePtr StateMgr::buildMultiState(const std::vector<StatePtr>& states, uint64_t id) const {
   std::vector<std::string> traits;
   for (const auto state : states) {
     traits.push_back(state->str());
   }
   Signature signature(traits);
-  auto it = states_.find(signature.fingerprint());
-  StatePtr state;
+  return std::make_shared<MultiState>(id, states, signature);
+}
+
+StatePtr StateMgr::registerMultiState(const std::vector<StatePtr>& states, uint64_t id) {
+  StatePtr state = buildMultiState(states, id);
+  auto it = states_.find(state->signature());
   if (it == states_.end()) {
-    LOG(INFO) << __func__ << " - Creating new state with id [" << id
-              << "] and fingerprint [" << signature.fingerprint() << "]";
-    state = std::make_shared<MultiState>(id, states, signature);
-    states_[signature.fingerprint()] = state;
-  } else {
-    state = it->second;
+    LOG(INFO) << __func__ << " - Registering new state with id [" << id
+              << "] and fingerprint [" << state->signature() << "]";
+    states_[state->signature()] = state;
   }
   return state;
 }
@@ -107,6 +108,33 @@ void StateMgr::endUnit() {
   StatePtr multiState = registerMultiState(currentUnit_);
   transitionmgr_.registerTransition(multiState, currentState_);
   currentUnit_.clear();
+}
+
+// To predict next possible state, first look for a
+// possible transition from the current unit, and if
+// nothing is found, then look for a possible transition
+// from the current state. This means that as an analogy
+// with spoken language, priority is given to the word
+// (ie unit) over the current letter (ie current state).
+std::vector<StatePtr> StateMgr::predictNextStates() const {
+  StatePtr currentUnitState = buildMultiState(currentUnit_);
+  std::vector<StatePtr> states = transitionmgr_.predictAllStatesFrom(currentUnitState);
+  if (states.empty()) {
+    states = transitionmgr_.predictAllStatesFrom(currentState_);
+  }
+  return states;
+}
+
+std::string StateMgr::formatAsString(const std::vector<StatePtr>& states) const {
+  static const std::string separator("|");
+  std::string str;
+  for (const auto state : states) {
+    str.append(state->str());
+    str.append(separator);
+  }
+  // Remove extraneous last separator
+  str.pop_back();
+  return str;
 }
 
 }
