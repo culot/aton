@@ -16,6 +16,8 @@ void StateMgr::clear() {
   transitionmgr_.clear();
   LOG(INFO) << __func__ << " - Removing [" << states_.size() << "] states";
   states_.clear();
+  currentUnit_.clear();
+  currentState_ = nullptr;
 }
 
 StatePtr StateMgr::registerState(State::Type type, const std::string& input, uint64_t id) {
