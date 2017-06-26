@@ -1,11 +1,8 @@
 #pragma once
 
-#include <mutex>
 #include <string>
 
 #include "statemgr.h"
-#include "transition.h"
-#include "state.h"
 
 
 namespace aton {
@@ -20,16 +17,11 @@ class Storage {
   void close();
 
  private:
-  void init();
-  void clearSchema();
-  void createSchemaIfMissing();
-  void loadStates(StateMgr& statemgr);
-  void loadTransitions(StateMgr& statemgr);
-  void saveStates(std::vector<StatePtr>& states);
-  void saveTransitions(std::vector<TransitionPtr>& transitions);
-  void executeStatement(const std::string& statement);
+  class Impl;
+  std::unique_ptr<Impl> impl_;
 
-  std::mutex mutex_;
+  Storage(const Storage&) = delete;
+  void operator=(const Storage&) = delete;
 };
 
 }
