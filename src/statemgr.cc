@@ -107,8 +107,10 @@ StatePtr StateMgr::getStateWithId(uint64_t id) const {
 void StateMgr::endUnit() {
   currentState_ = currentUnit_.back();
   currentUnit_.pop_back();
-  StatePtr multiState = registerMultiState(currentUnit_);
-  transitionmgr_.registerTransition(multiState, currentState_);
+  if (currentUnit_.size() > 1) {
+    StatePtr multiState = registerMultiState(currentUnit_);
+    transitionmgr_.registerTransition(multiState, currentState_);
+  }
   currentUnit_.clear();
 }
 
