@@ -23,6 +23,8 @@ class MultiState : public State {
   }
   uint64_t signature() const override {return signature_.fingerprint();}
 
+  const std::vector<StatePtr> components() const {return states_;}
+
  private:
   const Signature signature_;
   const std::vector<StatePtr> states_;
