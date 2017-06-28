@@ -15,6 +15,7 @@ namespace aton {
 class StateMgr {
  public:
   void clear();
+  int size() const {return states_.size();}
   StatePtr registerState(State::Type type, const std::string& input, uint64_t id = 0);
   TransitionPtr registerTransition(uint64_t from, uint64_t to, int weight);
   std::vector<StatePtr> getAllStates() const;
