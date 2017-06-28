@@ -171,8 +171,8 @@ void Storage::Impl::createSchemaIfMissing() {
       "state_to INTEGER NOT NULL,"
       "weight INTEGER NOT NULL,"
       "UNIQUE (state_from,state_to) ON CONFLICT FAIL,"
-      "FOREIGN KEY (state_from) REFERENCES textstate (id),"
-      "FOREIGN KEY (state_to) REFERENCES textstate (id));");
+      "FOREIGN KEY (state_from) REFERENCES state (id),"
+      "FOREIGN KEY (state_to) REFERENCES state (id));");
 
   LOG(INFO) << "Creating schema if missing from storage";
   executeStatement(createSchema);
@@ -289,7 +289,7 @@ void Storage::Impl::saveTransitions(std::vector<TransitionPtr>& transitions) {
     throw std::runtime_error("Storage error: could not prepare statements");
   }
 
-  for (const auto transition : transitions) {
+  for (const auto& transition : transitions) {
     sqlite3_bind_int(stmtTransition, 1, transition->from()->id());
     sqlite3_bind_int(stmtTransition, 2, transition->to()->id());
     sqlite3_bind_int(stmtTransition, 3, transition->weight());
