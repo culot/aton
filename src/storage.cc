@@ -19,6 +19,8 @@ struct Storage::Impl {
   void clearSchema();
   void createSchemaIfMissing();
   void loadStates(StateMgr& statemgr);
+  void loadTextStates(StateMgr& statemgr);
+  void loadMultiStates(StateMgr& statemgr);
   void loadTransitions(StateMgr& statemgr);
   void saveTextstates(const std::vector<StatePtr>& states);
   void saveMultistates(const std::vector<StatePtr>& states);
@@ -79,6 +81,12 @@ void Storage::Impl::init() {
 }
 
 void Storage::Impl::loadStates(StateMgr& statemgr) {
+  loadTextStates(statemgr);
+  loadMultiStates(statemgr);
+  LOG(INFO) << __func__ << " - Successfully loaded [" << statemgr.size() << "] states";
+}
+
+void Storage::Impl::loadTextStates(StateMgr& statemgr) {
   sqlite3_stmt* stmtTextstate;
   std::string selectTextstate("SELECT id,trigger FROM textstate");
   if (sqlite3_prepare_v2(db_, selectTextstate.c_str(), -1, &stmtTextstate, nullptr) != SQLITE_OK) {
@@ -99,6 +107,30 @@ void Storage::Impl::loadStates(StateMgr& statemgr) {
     throw std::runtime_error("Storage error: could not load states");
   }
   sqlite3_finalize(stmtTextstate);
+}
+
+void Storage::Impl::loadMultiStates(StateMgr& statemgr) {
+  sqlite3_stmt* stmtMultistate;
+  std::string selectMultistate("SELECT id,state FROM multistate order by id");
+  if (sqlite3_prepare_v2(db_, selectMultistate.c_str(), -1, &stmtMultistate, nullptr) != SQLITE_OK) {
+    LOG(ERROR) << __func__ << " - Could not prepare [" << selectMultistate
+               << "] because [" << sqlite3_errmsg(db_) << "]";
+    throw std::runtime_error("Storage error: statement could not prepare statements");
+  }
+  int rc;
+  while ((rc = sqlite3_step(stmtMultistate)) == SQLITE_ROW) {
+    uint64_t id = sqlite3_column_int(stmtMultistate, 0);
+    uint64_t state = sqlite3_column_int(stmtMultistate, 1);
+    // TODO: register a new multistate once all entries are loaded
+    // For this, use a temporary map id -> vector of states
+    // Beware of the order in which states are loaded
+  }
+  if (rc != SQLITE_DONE) {
+    LOG(ERROR) << __func__ << " - Could not load states because [" << sqlite3_errmsg(db_) << "]";
+    sqlite3_finalize(stmtMultistate);
+    throw std::runtime_error("Storage error: could not load states");
+  }
+  sqlite3_finalize(stmtMultistate);
 }
 
 void Storage::Impl::loadTransitions(StateMgr& statemgr) {
