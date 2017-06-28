@@ -112,6 +112,7 @@ void StateMgr::endUnit() {
     transitionmgr_.registerTransition(multiState, currentState_);
   }
   currentUnit_.clear();
+  currentState_ = nullptr;
 }
 
 // To predict next possible state, first look for a
