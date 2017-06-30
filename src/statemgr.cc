@@ -85,6 +85,14 @@ StatePtr StateMgr::registerMultiState(const std::vector<StatePtr>& states, uint6
   return state;
 }
 
+StatePtr StateMgr::registerMultiState(const std::vector<uint64_t>& stateIds, uint64_t id) {
+  std::vector<StatePtr> states;
+  for (const auto stateId : stateIds) {
+    states.push_back(getStateWithId(stateId));
+  }
+  return registerMultiState(states, id);
+}
+
 std::vector<StatePtr> StateMgr::getAllStates() const {
   std::vector<StatePtr> states;
   for (const auto i : states_) {
