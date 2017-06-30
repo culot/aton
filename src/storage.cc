@@ -1,5 +1,7 @@
 #include <exception>
 #include <cstdint>
+#include <vector>
+#include <map>
 
 #include <glog/logging.h>
 #include <sqlite3.h>
@@ -118,12 +120,11 @@ void Storage::Impl::loadMultiStates(StateMgr& statemgr) {
     throw std::runtime_error("Storage error: statement could not prepare statements");
   }
   int rc;
+  std::map<uint64_t, std::vector<uint64_t>> states;
   while ((rc = sqlite3_step(stmtMultistate)) == SQLITE_ROW) {
     uint64_t id = sqlite3_column_int(stmtMultistate, 0);
-    uint64_t state = sqlite3_column_int(stmtMultistate, 1);
-    // TODO: register a new multistate once all entries are loaded
-    // For this, use a temporary map id -> vector of states
-    // Beware of the order in which states are loaded
+    uint64_t stateId = sqlite3_column_int(stmtMultistate, 1);
+    states[id].push_back(stateId);
   }
   if (rc != SQLITE_DONE) {
     LOG(ERROR) << __func__ << " - Could not load states because [" << sqlite3_errmsg(db_) << "]";
@@ -131,6 +132,10 @@ void Storage::Impl::loadMultiStates(StateMgr& statemgr) {
     throw std::runtime_error("Storage error: could not load states");
   }
   sqlite3_finalize(stmtMultistate);
+
+  for (const auto& kv : states) {
+    statemgr.registerMultiState(kv.second);
+  }
 }
 
 void Storage::Impl::loadTransitions(StateMgr& statemgr) {
