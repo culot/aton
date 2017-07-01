@@ -45,6 +45,10 @@ StatePtr StateMgr::registerState(State::Type type, const std::string& input, uin
 TransitionPtr StateMgr::registerTransition(uint64_t from, uint64_t to, int weight) {
   StatePtr stateFrom = getStateWithId(from);
   StatePtr stateTo = getStateWithId(to);
+  if (!stateFrom || !stateTo) {
+    LOG(ERROR) << __func__ << " - Invalid state id, could not register transition";
+    throw std::runtime_error("Unknown state when registering transition");
+  }
   LOG(INFO) << __func__ << " - Registering transition from ["
             << *stateFrom << "] to [" << *stateTo << "] with weight [" << weight << "]";
   return transitionmgr_.registerTransition(stateFrom, stateTo, weight);
