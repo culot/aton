@@ -134,7 +134,7 @@ void Storage::Impl::loadMultiStates(StateMgr& statemgr) {
   sqlite3_finalize(stmtMultistate);
 
   for (const auto& kv : states) {
-    statemgr.registerMultiState(kv.second);
+    statemgr.registerMultiState(kv.second, kv.first);
   }
 }
 
