@@ -1,37 +1,27 @@
 #pragma once
 
-#include <mutex>
 #include <string>
 
-#include "state.h"
-#include "transition.h"
+#include "statemgr.h"
+
 
 namespace aton {
 
 class Storage {
  public:
-  static Storage& instance() {static Storage instance_; return instance_;}
+  Storage();
+  ~Storage();
 
-  void load();
-  void save();
+  void load(StateMgr& statemgr);
+  void save(StateMgr& statemgr);
   void close();
 
  private:
-  Storage();
-  ~Storage();
+  class Impl;
+  std::unique_ptr<Impl> impl_;
+
   Storage(const Storage&) = delete;
   void operator=(const Storage&) = delete;
-
-  void init();
-  void clearSchema();
-  void createSchemaIfMissing();
-  void loadStates();
-  void loadTransitions();
-  void saveStates(std::vector<StatePtr>& states);
-  void saveTransitions(std::vector<TransitionPtr>& transitions);
-  void executeStatement(const std::string& statement);
-
-  std::mutex mutex_;
 };
 
 }

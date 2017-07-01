@@ -11,6 +11,7 @@ class State {
  public:
   enum Type {
     unknown,
+    multi,
     text
   };
 
@@ -21,7 +22,9 @@ class State {
   void setId(uint64_t id) {id_ = id;}
   int type() const {return type_;}
 
-  virtual bool operator==(const State& rhs) const = 0;
+  virtual bool operator==(const State& rhs) const {
+    return signature() == rhs.signature();
+  }
 
   friend std::ostream& operator<<(std::ostream& out, const State& s) {
     s.print(out);
@@ -32,7 +35,7 @@ class State {
   State(Type type, uint64_t id) : type_(type), id_(id) {}
 
  private:
-  virtual void print(std::ostream& out) const = 0;
+  virtual void print(std::ostream& out) const {out << str();}
 
   uint64_t id_ {0};
   const Type type_;

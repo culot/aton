@@ -31,17 +31,13 @@ TransitionPtr TransitionMgr::createTransition(const StatePtr& from, const StateP
   return transition;
 }
 
-TransitionPtr TransitionMgr::getMostProbableTransitionFrom(const StatePtr& from) const {
-  uint64_t fromStateSig = from->signature();
-  auto it = transitions_.find(fromStateSig);
-  if (it == transitions_.end()) {
-    LOG(INFO) << __func__ << " - No existing transition from [" << *from << "]";
-    return nullptr;
-  } else {
-    TransitionPtr transition = it->second;
-    LOG(INFO) << __func__ << " - Transition found from [" << *from << "] to [" << *transition->to() << "]";
-    return transition;
+std::vector<StatePtr> TransitionMgr::predictAllStatesFrom(const StatePtr& from) const {
+  std::vector<TransitionPtr> transitions = getAllTransitionsFrom(from);
+  std::vector<StatePtr> states;
+  for (const auto transition : transitions) {
+    states.push_back(transition->to());
   }
+  return states;
 }
 
 std::vector<TransitionPtr> TransitionMgr::getAllTransitionsFrom(const StatePtr& from) const {

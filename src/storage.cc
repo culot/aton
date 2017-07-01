@@ -1,24 +1,77 @@
 #include <exception>
 #include <cstdint>
+#include <vector>
+#include <map>
 
 #include <glog/logging.h>
 #include <sqlite3.h>
 
 #include "cfg.h"
-#include "server.h"
 #include "state.h"
+#include "multistate.h"
 
 #include "storage.h"
 
+
 namespace aton {
 
-static sqlite3* db_;
+struct Storage::Impl {
+  void init();
+  void close();
+  void clearSchema();
+  void createSchemaIfMissing();
+  void loadStates(StateMgr& statemgr);
+  void loadTextStates(StateMgr& statemgr);
+  void loadMultiStates(StateMgr& statemgr);
+  void loadTransitions(StateMgr& statemgr);
+  void saveTextstates(const std::vector<StatePtr>& states);
+  void saveMultistates(const std::vector<StatePtr>& states);
+  void saveStates(const std::vector<StatePtr>& states);
+  void saveTransitions(std::vector<TransitionPtr>& transitions);
+  void executeStatement(const std::string& statement);
 
-Storage::Storage() {
-  init();
+  sqlite3* db_;
+};
+
+Storage::Storage() : impl_{new Impl} {
+  impl_->init();
 }
 
-void Storage::init() {
+Storage::~Storage() {
+  impl_->close();
+}
+
+void Storage::load(StateMgr& statemgr) {
+  LOG(INFO) << __func__ << " - Loading data";
+
+  LOG(INFO) << __func__ << " - Loading states";
+  impl_->loadStates(statemgr);
+
+  LOG(INFO) << __func__ << " - Loading transitions";
+  impl_->loadTransitions(statemgr);
+}
+
+void Storage::save(StateMgr& statemgr) {
+  LOG(INFO) << __func__ << " - Saving data";
+
+  impl_->clearSchema();
+
+  std::vector<StatePtr> states = statemgr.getAllStates();
+  LOG(INFO) << __func__ << " - Saving [" << states.size() << "] states";
+  impl_->saveStates(states);
+
+  std::vector<TransitionPtr> transitions = statemgr.getAllTransitions();
+  LOG(INFO) << __func__ << " - Saving [" << transitions.size() << "] transitions";
+  impl_->saveTransitions(transitions);
+
+  LOG(INFO) << __func__ << " - Data successfully saved";
+}
+
+void Storage::close() {
+  impl_->close();
+}
+
+void Storage::Impl::init() {
   int rc = sqlite3_open(cfg::DB_FILE.c_str(), &db_);
   if (rc) {
     LOG(ERROR) << __func__ << sqlite3_errmsg(db_);
@@ -29,21 +82,13 @@ void Storage::init() {
   createSchemaIfMissing();
 }
 
-Storage::~Storage() {
-  close();
+void Storage::Impl::loadStates(StateMgr& statemgr) {
+  loadTextStates(statemgr);
+  loadMultiStates(statemgr);
+  LOG(INFO) << __func__ << " - Successfully loaded [" << statemgr.size() << "] states";
 }
 
-void Storage::load() {
-  LOG(INFO) << __func__ << " - Loading data";
-
-  LOG(INFO) << __func__ << " - Loading states";
-  loadStates();
-
-  LOG(INFO) << __func__ << " - Loading transitions";
-  loadTransitions();
-}
-
-void Storage::loadStates() {
+void Storage::Impl::loadTextStates(StateMgr& statemgr) {
   sqlite3_stmt* stmtTextstate;
   std::string selectTextstate("SELECT id,trigger FROM textstate");
   if (sqlite3_prepare_v2(db_, selectTextstate.c_str(), -1, &stmtTextstate, nullptr) != SQLITE_OK) {
@@ -56,7 +101,7 @@ void Storage::loadStates() {
     uint64_t id = sqlite3_column_int(stmtTextstate, 0);
     // The retrieved data is plain ASCII, so the cast is safe here
     std::string trigger = std::string(reinterpret_cast<const char*>(sqlite3_column_text(stmtTextstate, 1)));
-    Server::instance().registerState(State::Type::text, trigger, id);
+    statemgr.registerState(State::Type::text, trigger, id);
   }
   if (rc != SQLITE_DONE) {
     LOG(ERROR) << __func__ << " - Could not load states because [" << sqlite3_errmsg(db_) << "]";
@@ -66,7 +111,34 @@ void Storage::loadStates() {
   sqlite3_finalize(stmtTextstate);
 }
 
-void Storage::loadTransitions() {
+void Storage::Impl::loadMultiStates(StateMgr& statemgr) {
+  sqlite3_stmt* stmtMultistate;
+  std::string selectMultistate("SELECT id,state FROM multistate order by id");
+  if (sqlite3_prepare_v2(db_, selectMultistate.c_str(), -1, &stmtMultistate, nullptr) != SQLITE_OK) {
+    LOG(ERROR) << __func__ << " - Could not prepare [" << selectMultistate
+               << "] because [" << sqlite3_errmsg(db_) << "]";
+    throw std::runtime_error("Storage error: statement could not prepare statements");
+  }
+  int rc;
+  std::map<uint64_t, std::vector<uint64_t>> states;
+  while ((rc = sqlite3_step(stmtMultistate)) == SQLITE_ROW) {
+    uint64_t id = sqlite3_column_int(stmtMultistate, 0);
+    uint64_t stateId = sqlite3_column_int(stmtMultistate, 1);
+    states[id].push_back(stateId);
+  }
+  if (rc != SQLITE_DONE) {
+    LOG(ERROR) << __func__ << " - Could not load states because [" << sqlite3_errmsg(db_) << "]";
+    sqlite3_finalize(stmtMultistate);
+    throw std::runtime_error("Storage error: could not load states");
+  }
+  sqlite3_finalize(stmtMultistate);
+
+  for (const auto& kv : states) {
+    statemgr.registerMultiState(kv.second, kv.first);
+  }
+}
+
+void Storage::Impl::loadTransitions(StateMgr& statemgr) {
   sqlite3_stmt* stmtTransition;
   std::string selectTransition("SELECT state_from,state_to,weight FROM transition");
   if (sqlite3_prepare_v2(db_, selectTransition.c_str(), -1, &stmtTransition, nullptr) != SQLITE_OK) {
@@ -79,7 +151,7 @@ void Storage::loadTransitions() {
     uint64_t idFrom = sqlite3_column_int(stmtTransition, 0);
     uint64_t idTo = sqlite3_column_int(stmtTransition, 1);
     int weight = sqlite3_column_int(stmtTransition, 2);
-    Server::instance().registerTransition(idFrom, idTo, weight);
+    statemgr.registerTransition(idFrom, idTo, weight);
   }
   if (rc != SQLITE_DONE) {
     LOG(ERROR) << __func__ << " - Could not load transitions because [" << sqlite3_errmsg(db_) << "]";
@@ -89,28 +161,12 @@ void Storage::loadTransitions() {
   sqlite3_finalize(stmtTransition);
 }
 
-void Storage::save() {
-  LOG(INFO) << __func__ << " - Saving data";
-
-  clearSchema();
-
-  std::vector<StatePtr> states = Server::instance().getAllStates();
-  LOG(INFO) << __func__ << " - Saving [" << states.size() << "] states";
-  saveStates(states);
-
-  std::vector<TransitionPtr> transitions = Server::instance().getAllTransitions();
-  LOG(INFO) << __func__ << " - Saving [" << transitions.size() << "] transitions";
-  saveTransitions(transitions);
-
-  LOG(INFO) << __func__ << " - Data successfully saved";
-}
-
-void Storage::close() {
+void Storage::Impl::close() {
   sqlite3_close(db_);
   LOG(INFO) << __func__ << " - Database [" << cfg::DB_FILE << "] successfully closed";
 }
 
-void Storage::clearSchema() {
+void Storage::Impl::clearSchema() {
   std::string clearSchema(
       "DELETE from transition;"
       "DELETE from textstate;"
@@ -119,7 +175,7 @@ void Storage::clearSchema() {
   LOG(INFO) << "Schema was cleared";
 }
 
-void Storage::createSchemaIfMissing() {
+void Storage::Impl::createSchemaIfMissing() {
   std::string createSchema(
       "PRAGMA foreign_keys = ON;"
       //
@@ -136,6 +192,14 @@ void Storage::createSchemaIfMissing() {
       "trigger TEXT NOT NULL UNIQUE,"
       "FOREIGN KEY (id) REFERENCES state (id));"
       //
+      // multistate
+      //
+      "CREATE TABLE IF NOT EXISTS multistate ("
+      "id INTEGER NOT NULL,"
+      "state INTEGER NOT NULL,"
+      "FOREIGN KEY (id) REFERENCES state (id),"
+      "FOREIGN KEY (state) REFERENCES state (id));"
+      //
       // transition
       //
       "CREATE TABLE IF NOT EXISTS transition ("
@@ -144,39 +208,17 @@ void Storage::createSchemaIfMissing() {
       "state_to INTEGER NOT NULL,"
       "weight INTEGER NOT NULL,"
       "UNIQUE (state_from,state_to) ON CONFLICT FAIL,"
-      "FOREIGN KEY (state_from) REFERENCES textstate (id),"
-      "FOREIGN KEY (state_to) REFERENCES textstate (id));");
+      "FOREIGN KEY (state_from) REFERENCES state (id),"
+      "FOREIGN KEY (state_to) REFERENCES state (id));");
 
   LOG(INFO) << "Creating schema if missing from storage";
   executeStatement(createSchema);
 }
 
-void Storage::saveStates(std::vector<StatePtr>& states) {
-  sqlite3_stmt* stmtState;
-  std::string insertState("INSERT INTO state (type) VALUES (?)");
-
+void Storage::Impl::saveTextstates(const std::vector<StatePtr>& states) {
   sqlite3_stmt* stmtTextstate;
   std::string insertTextstate("INSERT INTO textstate (id,trigger) VALUES (?,?)");
-
-  if ((sqlite3_prepare_v2(db_, insertState.c_str(), -1, &stmtState, 0) != SQLITE_OK)
-      || (sqlite3_prepare_v2(db_, insertTextstate.c_str(), -1, &stmtTextstate, 0) != SQLITE_OK)) {
-    LOG(ERROR) << __func__ << " - Could not prepare statements because ["
-               << sqlite3_errmsg(db_) << "]";
-    throw std::runtime_error("Storage error: could not prepare statements");
-  }
-
-  for (const auto state : states) {
-    sqlite3_bind_int(stmtState, 1, state->type());
-    if (sqlite3_step(stmtState) != SQLITE_DONE) {
-      LOG(ERROR) << __func__ << " - Error while inserting State [" << state->str()
-                 << "] because [" << sqlite3_errmsg(db_) << "]";
-      throw std::runtime_error("Storage error: could not save states");
-    }
-
-    state->setId(sqlite3_last_insert_rowid(db_));
-
-    // Here a switch based on state->type() will have to be added
-    // when support for states of types other than text will be needed
+  auto doInsertTextstate = [&](const StatePtr& state) {
     sqlite3_bind_int(stmtTextstate, 1, state->id());
     sqlite3_bind_text(stmtTextstate, 2, state->str().c_str(), state->str().size(), SQLITE_STATIC);
     if (sqlite3_step(stmtTextstate) != SQLITE_DONE) {
@@ -184,14 +226,97 @@ void Storage::saveStates(std::vector<StatePtr>& states) {
                  << "] because [" << sqlite3_errmsg(db_) << "]";
       throw std::runtime_error("Storage error: could not save states");
     }
-    sqlite3_reset(stmtState);
     sqlite3_reset(stmtTextstate);
+  };
+
+  if (sqlite3_prepare_v2(db_, insertTextstate.c_str(), -1, &stmtTextstate, 0) != SQLITE_OK) {
+    LOG(ERROR) << __func__ << " - Could not prepare statements because ["
+               << sqlite3_errmsg(db_) << "]";
+    throw std::runtime_error("Storage error: could not prepare statements");
   }
-  sqlite3_finalize(stmtState);
+
+  for (const auto& state : states) {
+    if (state->type() == State::Type::text) {
+      doInsertTextstate(state);
+    }
+  }
   sqlite3_finalize(stmtTextstate);
 }
 
-void Storage::saveTransitions(std::vector<TransitionPtr>& transitions) {
+void Storage::Impl::saveMultistates(const std::vector<StatePtr>& states) {
+  sqlite3_stmt* stmtMultistate;
+  std::string insertMultistate("INSERT INTO multistate (id,state) VALUES (?,?)");
+  auto doInsertMultistate = [&](const StatePtr& state) {
+    const MultiState& multistate = dynamic_cast<MultiState&>(*state);
+    const std::vector<StatePtr> states = multistate.components();
+    for (const auto& state : states) {
+      sqlite3_bind_int(stmtMultistate, 1, multistate.id());
+      sqlite3_bind_int(stmtMultistate, 2, state->id());
+      if (sqlite3_step(stmtMultistate) != SQLITE_DONE) {
+        LOG(ERROR) << __func__ << " - Error while inserting State [" << multistate.str()
+                   << "] because [" << sqlite3_errmsg(db_) << "]";
+        throw std::runtime_error("Storage error: could not save states");
+      }
+      sqlite3_reset(stmtMultistate);
+    }
+  };
+
+  if (sqlite3_prepare_v2(db_, insertMultistate.c_str(), -1, &stmtMultistate, 0) != SQLITE_OK) {
+    LOG(ERROR) << __func__ << " - Could not prepare statements because ["
+               << sqlite3_errmsg(db_) << "]";
+    throw std::runtime_error("Storage error: could not prepare statements");
+  }
+
+  for (const auto& state : states) {
+    if (state->type() == State::Type::multi) {
+      doInsertMultistate(state);
+    }
+  }
+  sqlite3_finalize(stmtMultistate);
+}
+
+// Tables are saved in this order:
+//   1. state
+//   2. textstate
+//   3. multistate
+//
+// This is due to the presence of multistates which are made of
+// several textstates, hence states of type text must ALL be
+// persisted before states of type multi.
+//
+// Note: we loop 3 times over all states, which is not optimal,
+// but persistence only happens at server shutdown when performance
+// is not a concern.
+void Storage::Impl::saveStates(const std::vector<StatePtr>& states) {
+  sqlite3_stmt* stmtState;
+  std::string insertState("INSERT INTO state (type) VALUES (?)");
+  auto doInsertState = [&](const StatePtr& state) {
+    sqlite3_bind_int(stmtState, 1, state->type());
+    if (sqlite3_step(stmtState) != SQLITE_DONE) {
+      LOG(ERROR) << __func__ << " - Error while inserting State [" << state->str()
+                 << "] because [" << sqlite3_errmsg(db_) << "]";
+      throw std::runtime_error("Storage error: could not save states");
+    }
+    sqlite3_reset(stmtState);
+  };
+
+  if (sqlite3_prepare_v2(db_, insertState.c_str(), -1, &stmtState, 0) != SQLITE_OK) {
+    LOG(ERROR) << __func__ << " - Could not prepare statements because ["
+               << sqlite3_errmsg(db_) << "]";
+    throw std::runtime_error("Storage error: could not prepare statements");
+  }
+
+  for (const auto& state : states) {
+    doInsertState(state);
+    state->setId(sqlite3_last_insert_rowid(db_));
+  }
+  sqlite3_finalize(stmtState);
+
+  saveTextstates(states);
+  saveMultistates(states);
+}
+
+void Storage::Impl::saveTransitions(std::vector<TransitionPtr>& transitions) {
   sqlite3_stmt* stmtTransition;
   std::string insertTransition("INSERT INTO transition (state_from,state_to,weight) VALUES (?,?,?)");
 
@@ -201,7 +326,7 @@ void Storage::saveTransitions(std::vector<TransitionPtr>& transitions) {
     throw std::runtime_error("Storage error: could not prepare statements");
   }
 
-  for (const auto transition : transitions) {
+  for (const auto& transition : transitions) {
     sqlite3_bind_int(stmtTransition, 1, transition->from()->id());
     sqlite3_bind_int(stmtTransition, 2, transition->to()->id());
     sqlite3_bind_int(stmtTransition, 3, transition->weight());
@@ -215,7 +340,7 @@ void Storage::saveTransitions(std::vector<TransitionPtr>& transitions) {
   sqlite3_finalize(stmtTransition);
 }
 
-void Storage::executeStatement(const std::string& statement) {
+void Storage::Impl::executeStatement(const std::string& statement) {
   char* errmsg = nullptr;
   if (sqlite3_exec(db_, statement.c_str(), nullptr, nullptr, &errmsg) != SQLITE_OK) {
     LOG(ERROR) << __func__ << " - Could not execute [" << statement << "] because [" << errmsg << "]";

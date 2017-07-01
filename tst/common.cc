@@ -32,4 +32,14 @@ void sendAndReceive(void* tgt, const std::string& in, const std::string& out) {
   std::cout << "OK" << std::endl;
 }
 
+void sendJuncture(void* tgt) {
+  static const std::string juncture("JUNCTURE");
+  std::cout << "Sending juncture ... ";
+  zmq_send(tgt, juncture.c_str(), juncture.length(), 0);
+  char buf[MAXREPLYSIZE];
+  zmq_recv(tgt, buf, MAXREPLYSIZE, 0);
+  std::string answer(buf);
+  std::cout << answer << std::endl;
+}
+
 }

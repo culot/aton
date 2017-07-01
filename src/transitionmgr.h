@@ -1,17 +1,19 @@
 #pragma once
 
+#include <string>
 #include <vector>
 #include <map>
 
 #include "state.h"
 #include "transition.h"
 
+
 namespace aton {
 
 class TransitionMgr {
  public:
   TransitionPtr registerTransition(const StatePtr& from, const StatePtr& to, int weight = 1);
-  TransitionPtr getMostProbableTransitionFrom(const StatePtr& from) const;
+  std::vector<StatePtr> predictAllStatesFrom(const StatePtr& from) const;
   std::vector<TransitionPtr> getAllTransitionsFrom(const StatePtr& from) const;
   std::vector<TransitionPtr> getAllTransitions() const;
   void clear();
