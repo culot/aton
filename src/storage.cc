@@ -170,6 +170,7 @@ void Storage::Impl::clearSchema() {
   std::string clearSchema(
       "DELETE from transition;"
       "DELETE from textstate;"
+      "DELETE from multistate;"
       "DELETE from state;");
   executeStatement(clearSchema);
   LOG(INFO) << "Schema was cleared";
