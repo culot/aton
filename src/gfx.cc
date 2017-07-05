@@ -1,6 +1,10 @@
 #include <exception>
+#include <vector>
 
 #include <glog/logging.h>
+
+#include "state.h"
+#include "transition.h"
 
 #include "gfx.h"
 
@@ -37,6 +41,18 @@ void Gfx::plotGraphviz(const StateMgr& statemgr) {
   out_ << "  // Set the default properties for nodes and edges between nodes" << std::endl;
   out_ << "  node [shape=ellipse, color=gray, fontname=\"fixed\", fontsize=9]" << std::endl;
   out_ << "  edge [color=gray, arrowhead=open, weight=2]" << std::endl;
+  out_ << std::endl;
+
+  std::vector<StatePtr> states = statemgr.getAllStates();
+  for (const auto& state : states) {
+    out_ << "  " << state->str() << " [label=\"" << state->str() << "\"]" << std::endl;
+  }
+  out_ << std::endl;
+  std::vector<TransitionPtr> transitions = statemgr.getAllTransitions();
+  for (const auto& transition : transitions) {
+    out_ << "  " << transition->from()->str() << " -> " << transition->to()->str() << std::endl;
+  }
+
   out_ << std::endl;
   out_ << "}" << std::endl;
 }
