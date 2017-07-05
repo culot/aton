@@ -18,6 +18,17 @@ Gfx::Gfx(Type type, const std::string& outputFileName)
 }
 
 void Gfx::plot(const StateMgr& statemgr) {
+  auto it = plotHandlers_.find(type_);
+  if (it != plotHandlers_.end()) {
+    (it->second)(*this, statemgr);
+  } else {
+    LOG(ERROR) << __func__ << " - Unsupported plot format [" << type_ << "]";
+  }
+}
+
+void Gfx::plotGraphviz(const StateMgr& statemgr) {
+  LOG(INFO) << __func__ << " - Starting Graphviz plot generation";
+
   out_ << "digraph \"aton\" {" << std::endl;
   out_ << std::endl;
   out_ << "  // Set general graph options" << std::endl;
