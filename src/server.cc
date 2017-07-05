@@ -7,6 +7,8 @@
 #include <glog/logging.h>
 #include <zmq.h>
 
+#include "gfx.h"
+
 #include "server.h"
 
 
@@ -34,6 +36,9 @@ void Server::start() {
 void Server::terminate() {
   storage_.save(statemgr_);
   storage_.close();
+
+  Gfx gfx(Gfx::Type::graphviz, cfg::PLOT_FILE_GRAPHVIZ);
+  gfx.plot(statemgr_);
 }
 
 void Server::processInput() {
