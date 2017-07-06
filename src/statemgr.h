@@ -14,6 +14,11 @@ namespace aton {
 
 class StateMgr {
  public:
+  struct Prediction {
+    StatePtr state;
+    float probability;
+  };
+
   void clear();
   int size() const {return states_.size();}
   StatePtr registerState(State::Type type, const std::string& input, uint64_t id = 0);
@@ -22,8 +27,8 @@ class StateMgr {
   std::vector<StatePtr> getAllStates() const;
   std::vector<TransitionPtr> getAllTransitions() const {return transitionmgr_.getAllTransitions();}
   void endUnit();
-  std::vector<StatePtr> predictNextStates() const;
-  std::string formatAsString(const std::vector<StatePtr>& states) const;
+  std::vector<Prediction> predictNextStates() const;
+  std::string formatAsString(const std::vector<Prediction>& predictions) const;
 
  private:
   StatePtr getStateWithId(uint64_t id) const;

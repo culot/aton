@@ -127,26 +127,44 @@ void StateMgr::endUnit() {
   currentState_ = nullptr;
 }
 
-// To predict next possible state, first look for a
-// possible transition from the current unit, and if
-// nothing is found, then look for a possible transition
-// from the current state. This means that as an analogy
-// with spoken language, priority is given to the word
-// (ie unit) over the current letter (ie current state).
-std::vector<StatePtr> StateMgr::predictNextStates() const {
+std::vector<StateMgr::Prediction> StateMgr::predictNextStates() const {
+  StatePtr currentState;
+
+  // To predict next possible state, first look for a
+  // possible transition from the current unit, and if
+  // nothing is found, then look for a possible transition
+  // from the current state. This means that as an analogy
+  // with spoken language, priority is given to the word
+  // (ie unit) over the current letter (ie current state).
   StatePtr currentUnitState = buildMultiState(currentUnit_);
-  std::vector<StatePtr> states = transitionmgr_.predictAllStatesFrom(currentUnitState);
-  if (states.empty()) {
-    states = transitionmgr_.predictAllStatesFrom(currentState_);
+  if (transitionmgr_.hasTransitions(currentUnitState)) {
+    currentState = currentUnitState;
+  } else {
+    currentState = currentState_;
   }
-  return states;
+
+  std::vector<TransitionPtr> transitions = transitionmgr_.getAllTransitionsFrom(currentState);
+  uint64_t transno = transitionmgr_.getNumberOfTransitionsFrom(currentState);
+
+  std::vector<StateMgr::Prediction> predictions;
+  for (const auto& transition : transitions) {
+    StateMgr::Prediction prediction;
+    prediction.state = transition->to();
+    prediction.probability = static_cast<float>(transition->weight()) / static_cast<float>(transno);
+    predictions.push_back(prediction);
+  }
+
+  return predictions;
 }
 
-std::string StateMgr::formatAsString(const std::vector<StatePtr>& states) const {
+std::string StateMgr::formatAsString(const std::vector<StateMgr::Prediction>& predictions) const {
   static const std::string separator("|");
+  static const std::string probabilitySeparator(":");
   std::string str;
-  for (const auto state : states) {
-    str.append(state->str());
+  for (const auto prediction : predictions) {
+    str.append(prediction.state->str());
+    str.append(probabilitySeparator);
+    str.append(std::to_string(prediction.probability));
     str.append(separator);
   }
   // Remove extraneous last separator
