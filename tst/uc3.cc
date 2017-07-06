@@ -21,14 +21,14 @@ int main (void) {
   common::sendAndReceive(requester, "l", "");
   common::sendJuncture(requester);
   common::sendAndReceive(requester, "t", "");
-  common::sendAndReceive(requester, "a", "l:1");
+  common::sendAndReceive(requester, "a", "l:1.000000");
   common::sendAndReceive(requester, "c", "");
   common::sendJuncture(requester);
-  common::sendAndReceive(requester, "b", "a:1");
-  common::sendAndReceive(requester, "a", "l:1");
+  common::sendAndReceive(requester, "b", "a:1.000000");
+  common::sendAndReceive(requester, "a", "l:1.000000");
   common::sendJuncture(requester);
-  common::sendAndReceive(requester, "t", "a:1");
-  common::sendAndReceive(requester, "a", "c:1");
+  common::sendAndReceive(requester, "t", "a:1.000000");
+  common::sendAndReceive(requester, "a", "c:1.000000");
 
   zmq_close(requester);
   zmq_ctx_destroy(context);

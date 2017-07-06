@@ -18,9 +18,9 @@ int main (void) {
 
   common::sendAndReceive(requester, "tic", "");
   common::sendAndReceive(requester, "tac", "");
-  common::sendAndReceive(requester, "tic", "tac:1");
+  common::sendAndReceive(requester, "tic", "tac:1.000000");
   common::sendAndReceive(requester, "toc", "");
-  common::sendAndReceive(requester, "tic", "tac:0.50|toc:0.50");
+  common::sendAndReceive(requester, "tic", "tac:0.500000|toc:0.500000");
 
   zmq_close(requester);
   zmq_ctx_destroy(context);

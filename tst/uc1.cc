@@ -19,7 +19,7 @@ int main (void) {
 
   common::sendAndReceive(requester, "tic", "");
   common::sendAndReceive(requester, "tac", "");
-  common::sendAndReceive(requester, "tic", "tac:1");
+  common::sendAndReceive(requester, "tic", "tac:1.000000");
 
   zmq_close(requester);
   zmq_ctx_destroy(context);
