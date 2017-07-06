@@ -18,13 +18,13 @@ int main (void) {
 
   common::sendAndReceive(requester, "tic", "");
   common::sendAndReceive(requester, "tac", "");
-  common::sendAndReceive(requester, "tic", "tac:1");
+  common::sendAndReceive(requester, "tic", "tac:1.000000");
   common::sendAndReceive(requester, "toc", "");
-  common::sendAndReceive(requester, "tic", "tac:0.50|toc:0.50");
+  common::sendAndReceive(requester, "tic", "tac:0.500000|toc:0.500000");
   common::sendAndReceive(requester, "tuc", "");
-  common::sendAndReceive(requester, "tic", "tac:0.33|toc:0.33|tuc:0.33");
-  common::sendAndReceive(requester, "tac", "tic");
-  common::sendAndReceive(requester, "tic", "tac:0.50|toc:0.25|tuc:0.25");
+  common::sendAndReceive(requester, "tic", "tac:0.333333|toc:0.333333|tuc:0.333333");
+  common::sendAndReceive(requester, "tac", "tic:1.000000");
+  common::sendAndReceive(requester, "tic", "tac:0.500000|toc:0.250000|tuc:0.250000");
 
   zmq_close(requester);
   zmq_ctx_destroy(context);
