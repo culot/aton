@@ -64,7 +64,7 @@ void Server::processInput() {
 
 std::string Server::handleRequest(const std::string& request) {
   statemgr_.registerState(State::Type::text, request);
-  std::vector<StatePtr> predictions = statemgr_.predictNextStates();
+  std::vector<StateMgr::Prediction> predictions = statemgr_.predictNextStates();
   return statemgr_.formatAsString(predictions);
 }
 

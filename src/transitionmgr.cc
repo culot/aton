@@ -23,21 +23,17 @@ TransitionPtr TransitionMgr::registerTransition(const StatePtr& from, const Stat
   }
 }
 
+bool TransitionMgr::hasTransitions(const StatePtr& from) const {
+  uint64_t fromStateSig = from->signature();
+  return transitions_.find(fromStateSig) != transitions_.end();
+}
+
 TransitionPtr TransitionMgr::createTransition(const StatePtr& from, const StatePtr& to, int weight) {
   LOG(INFO) << __func__ << " - Creating new transition from ["
             << *from << "] to [" << *to << "] with initial weight [" << weight << "]";
   TransitionPtr transition = std::make_shared<Transition>(from, to, weight);
   transitions_.emplace(from->signature(), transition);
   return transition;
-}
-
-std::vector<StatePtr> TransitionMgr::predictAllStatesFrom(const StatePtr& from) const {
-  std::vector<TransitionPtr> transitions = getAllTransitionsFrom(from);
-  std::vector<StatePtr> states;
-  for (const auto transition : transitions) {
-    states.push_back(transition->to());
-  }
-  return states;
 }
 
 std::vector<TransitionPtr> TransitionMgr::getAllTransitionsFrom(const StatePtr& from) const {
@@ -51,6 +47,18 @@ std::vector<TransitionPtr> TransitionMgr::getAllTransitionsFrom(const StatePtr& 
   }
   LOG(INFO) << __func__ << " - Found [" << transitions.size() << "] transitions from [" << *from << "]";
   return transitions;
+}
+
+// This method does not return the equivalent of getAllTransitionFrom(from).size(),
+// but instead takes into account the weight of each possible transition from the
+// given state (ie the number of times a transition was traversed).
+uint64_t TransitionMgr::getNumberOfTransitionsFrom(const StatePtr& from) const {
+  std::vector<TransitionPtr> transitions = getAllTransitionsFrom(from);
+  uint64_t transno {0};
+  for (const auto& transition : transitions) {
+    transno += transition->weight();
+  }
+  return transno;
 }
 
 std::vector<TransitionPtr> TransitionMgr::getAllTransitions() const {

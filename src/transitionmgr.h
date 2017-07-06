@@ -1,5 +1,6 @@
 #pragma once
 
+#include <cstdint>
 #include <string>
 #include <vector>
 #include <map>
@@ -13,8 +14,9 @@ namespace aton {
 class TransitionMgr {
  public:
   TransitionPtr registerTransition(const StatePtr& from, const StatePtr& to, int weight = 1);
-  std::vector<StatePtr> predictAllStatesFrom(const StatePtr& from) const;
+  bool hasTransitions(const StatePtr& from) const;
   std::vector<TransitionPtr> getAllTransitionsFrom(const StatePtr& from) const;
+  uint64_t getNumberOfTransitionsFrom(const StatePtr& from) const;
   std::vector<TransitionPtr> getAllTransitions() const;
   void clear();
 

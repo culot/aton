@@ -1,7 +1,6 @@
 #include <string>
 #include <iostream>
 #include <unistd.h>
-#include <cassert>
 
 #include <zmq.h>
 
@@ -20,6 +19,12 @@ int main (void) {
   common::sendAndReceive(requester, "tic", "");
   common::sendAndReceive(requester, "tac", "");
   common::sendAndReceive(requester, "tic", "tac:1.000000");
+  common::sendAndReceive(requester, "toc", "");
+  common::sendAndReceive(requester, "tic", "tac:0.500000|toc:0.500000");
+  common::sendAndReceive(requester, "tuc", "");
+  common::sendAndReceive(requester, "tic", "tac:0.333333|toc:0.333333|tuc:0.333333");
+  common::sendAndReceive(requester, "tac", "tic:1.000000");
+  common::sendAndReceive(requester, "tic", "tac:0.500000|toc:0.250000|tuc:0.250000");
 
   zmq_close(requester);
   zmq_ctx_destroy(context);
