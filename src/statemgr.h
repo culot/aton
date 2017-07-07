@@ -28,6 +28,7 @@ class StateMgr {
   std::vector<TransitionPtr> getAllTransitions() const {return transitionmgr_.getAllTransitions();}
   void endUnit();
   std::vector<Prediction> predictNextStates() const;
+  std::vector<Prediction> predictNextStates(const StatePtr& from) const;
   std::string formatAsString(const std::vector<Prediction>& predictions) const;
 
  private:

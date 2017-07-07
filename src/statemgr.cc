@@ -143,8 +143,12 @@ std::vector<StateMgr::Prediction> StateMgr::predictNextStates() const {
     currentState = currentState_;
   }
 
-  std::vector<TransitionPtr> transitions = transitionmgr_.getAllTransitionsFrom(currentState);
-  uint64_t transno = transitionmgr_.getNumberOfTransitionsFrom(currentState);
+  return predictNextStates(currentState);
+}
+
+std::vector<StateMgr::Prediction> StateMgr::predictNextStates(const StatePtr& from) const {
+  std::vector<TransitionPtr> transitions = transitionmgr_.getAllTransitionsFrom(from);
+  uint64_t transno = transitionmgr_.getNumberOfTransitionsFrom(from);
 
   std::vector<StateMgr::Prediction> predictions;
   for (const auto& transition : transitions) {
