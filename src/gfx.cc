@@ -1,5 +1,6 @@
 #include <exception>
 #include <vector>
+#include <cmath>
 
 #include <glog/logging.h>
 
@@ -40,7 +41,7 @@ void Gfx::plotGraphviz(const StateMgr& statemgr) {
   out_ << std::endl;
   out_ << "  // Set the default properties for nodes and edges between nodes" << std::endl;
   out_ << "  node [shape=ellipse, color=gray, fontname=\"fixed\", fontsize=9]" << std::endl;
-  out_ << "  edge [color=gray, arrowhead=open, weight=2]" << std::endl;
+  out_ << "  edge [color=gray, style=tapered, dir=forward, arrowhead=none]" << std::endl;
   out_ << std::endl;
 
   std::vector<StatePtr> states = statemgr.getAllStates();
@@ -48,9 +49,13 @@ void Gfx::plotGraphviz(const StateMgr& statemgr) {
     out_ << "  " << state->str() << " [label=\"" << state->str() << "\"]" << std::endl;
   }
   out_ << std::endl;
-  std::vector<TransitionPtr> transitions = statemgr.getAllTransitions();
-  for (const auto& transition : transitions) {
-    out_ << "  " << transition->from()->str() << " -> " << transition->to()->str() << std::endl;
+
+  for (const auto& state : states) {
+    std::vector<StateMgr::Prediction> predictions = statemgr.predictNextStates(state);
+    for (const auto& prediction : predictions) {
+      out_ << "  " << state->str() << " -> " << prediction.state->str();
+      out_ << " [penwidth=" << std::lround(10 * prediction.probability) << "]" << std::endl;
+    }
   }
 
   out_ << std::endl;
