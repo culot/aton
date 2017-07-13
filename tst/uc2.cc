@@ -7,7 +7,7 @@
 #include "common.h"
 
 
-int main (void) {
+int main(void) {
   std::cout << "Connecting to server... ";
   void* context = zmq_ctx_new();
   void* requester = zmq_socket(context, ZMQ_REQ);
