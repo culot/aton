@@ -46,11 +46,19 @@ void Gfx::plotGraphviz(const StateMgr& statemgr) {
 
   std::vector<StatePtr> states = statemgr.getAllStates();
   for (const auto& state : states) {
+    if (state->type() == State::Type::multi && !options_.plotMultiState) {
+      continue;
+    }
+
     out_ << "  " << state->str() << " [label=\"" << state->str() << "\"]" << std::endl;
   }
   out_ << std::endl;
 
   for (const auto& state : states) {
+    if (state->type() == State::Type::multi && !options_.plotMultiState) {
+      continue;
+    }
+
     std::vector<StateMgr::Prediction> predictions = statemgr.predictNextStates(state);
     for (const auto& prediction : predictions) {
       out_ << "  " << state->str() << " -> " << prediction.state->str();
