@@ -16,13 +16,19 @@ void clearServerMemory(void* tgt) {
   std::cout << answer << std::endl;
 }
 
-void sendAndReceive(void* tgt, const std::string& in, const std::string& out) {
+std::string send(void* tgt, const std::string& in) {
   std::cout << "Sending '" << in << "' ... ";
   zmq_send(tgt, in.c_str(), in.length(), 0);
   char buf[MAXREPLYSIZE];
   bzero(buf, MAXREPLYSIZE);
   zmq_recv(tgt, buf, MAXREPLYSIZE, 0);
   std::string answer(buf);
+  std::cout << "received '" << answer << "'" << std::endl;
+  return answer;
+}
+
+void sendAndReceive(void* tgt, const std::string& in, const std::string& out) {
+  std::string answer = send(tgt, in);
   std::cout << "Expected '" << out << "', received '" << answer << "' ... ";
   if (out.empty()) {
     assert(answer.length() == 0);
