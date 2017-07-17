@@ -37,7 +37,7 @@ void Gfx::plotGraphviz(const StateMgr& statemgr) {
   out_ << "digraph \"aton\" {" << std::endl;
   out_ << std::endl;
   out_ << "  // Set general graph options" << std::endl;
-  out_ << "  graph [mindist=0, minlen=0, size=\"9,9\",ratio=\"auto\",orientation=portrait]" << std::endl;
+  out_ << "  graph [mindist=0, minlen=0, ratio=\"auto\", orientation=portrait]" << std::endl;
   out_ << std::endl;
   out_ << "  // Set the default properties for nodes and edges between nodes" << std::endl;
   out_ << "  node [shape=ellipse, color=gray, fontname=\"fixed\", fontsize=9]" << std::endl;
