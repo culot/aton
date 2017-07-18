@@ -40,7 +40,7 @@ void Gfx::plotGraphviz(const StateMgr& statemgr) {
   out_ << "  graph [mindist=0, minlen=0, ratio=\"auto\", imagepath=\"full/path/to/images\"]" << std::endl;
   out_ << std::endl;
   out_ << "  // Set the default properties for nodes and edges between nodes" << std::endl;
-  out_ << "  node [shape=ellipse, color=gray, fontname=\"fixed\", fontsize=9, label=\"\"]" << std::endl;
+  out_ << "  node [shape=ellipse, color=gray, fontname=\"fixed\", fontsize=9, label=\"\", fixedsize=true, width=1.125, height=1.125]" << std::endl;
   out_ << "  edge [color=gray, style=tapered, dir=forward, arrowhead=none]" << std::endl;
   out_ << std::endl;
 
