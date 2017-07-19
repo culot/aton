@@ -37,10 +37,22 @@ void Gfx::plotGraphviz(const StateMgr& statemgr) {
   out_ << "digraph \"aton\" {" << std::endl;
   out_ << std::endl;
   out_ << "  // Set general graph options" << std::endl;
-  out_ << "  graph [mindist=0, minlen=0, ratio=\"auto\", imagepath=\"full/path/to/images\"]" << std::endl;
+
+  if (options_.plotWithPics) {
+    out_ << "  graph [mindist=0, minlen=0, ratio=\"auto\", imagepath=\"full/path/to/images\"]" << std::endl;
+  } else {
+    out_ << "  graph [mindist=0, minlen=0, ratio=\"auto\", imagepath=\"full/path/to/images\"]" << std::endl;
+  }
+
   out_ << std::endl;
   out_ << "  // Set the default properties for nodes and edges between nodes" << std::endl;
-  out_ << "  node [shape=ellipse, color=gray, fontname=\"fixed\", fontsize=9, label=\"\", fixedsize=true, width=1.125, height=1.125]" << std::endl;
+
+  if (options_.plotWithPics) {
+    out_ << "  node [shape=ellipse, color=gray, fontname=\"fixed\", fontsize=9, label=\"\", fixedsize=true, width=1.125, height=1.125]" << std::endl;
+  } else {
+    out_ << "  node [shape=ellipse, color=gray, fontname=\"fixed\", fontsize=9, fixedsize=true, width=1.125, height=1.125]" << std::endl;
+  }
+
   out_ << "  edge [color=gray, style=tapered, dir=forward, arrowhead=none]" << std::endl;
   out_ << std::endl;
 
@@ -50,9 +62,13 @@ void Gfx::plotGraphviz(const StateMgr& statemgr) {
       continue;
     }
 
-    out_ << "  " << state->str()
-         << " [image=\"S"  << state->str() << ".jpg\"]" << std::endl;
-//         <<", label=\"" << state->str() << "\"]" << std::endl;
+    if (options_.plotWithPics) {
+      out_ << "  " << state->str()
+           << " [image=\"S"  << state->str() << ".jpg\"]" << std::endl;
+    } else {
+      out_ << "  " << state->str()
+           <<" [label=\"" << state->str() << "\"]" << std::endl;
+    }
   }
   out_ << std::endl;
 
