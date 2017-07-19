@@ -13,6 +13,7 @@ extern const std::string REQUEST_CLEAR;
 extern const std::string REQUEST_JUNCTURE;
 extern const std::string DB_FILE;
 extern const std::string PLOT_FILE_GRAPHVIZ;
+extern const std::string PLOT_FILE_GRAPHVIZ_PICS;
 
 }
 }
