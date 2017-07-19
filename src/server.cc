@@ -37,8 +37,16 @@ void Server::terminate() {
   storage_.save(statemgr_);
   storage_.close();
 
+  // First graph with default options
   Gfx gfx(Gfx::Type::graphviz, cfg::PLOT_FILE_GRAPHVIZ);
   gfx.plot(statemgr_);
+
+  // Second graph with pictures enabled
+  Gfx::Options gfxOpts;
+  gfxOpts.plotWithPics = true;
+  Gfx gfxPics(Gfx::Type::graphviz, cfg::PLOT_FILE_GRAPHVIZ_PICS);
+  gfxPics.setOptions(gfxOpts);
+  gfxPics.plot(statemgr_);
 }
 
 void Server::processInput() {
