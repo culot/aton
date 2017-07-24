@@ -31,28 +31,22 @@ void Gfx::plot(const StateMgr& statemgr) {
   }
 }
 
+/*
+ * The Graphviz plot uses the NFM-Indus Script font,
+ * which can be downloaded for free from the following url:
+ *
+ *  https://www.mohenjodaroonline.net/index.php/indus-script/corpus-by-asko-parpola/42-indus-script
+ */
 void Gfx::plotGraphviz(const StateMgr& statemgr) {
   LOG(INFO) << __func__ << " - Starting Graphviz plot generation";
 
   out_ << "digraph \"aton\" {" << std::endl;
   out_ << std::endl;
   out_ << "  // Set general graph options" << std::endl;
-
-  if (options_.plotWithPics) {
-    out_ << "  graph [mindist=0, minlen=0, ratio=\"auto\", imagepath=\"full/path/to/images\"]" << std::endl;
-  } else {
-    out_ << "  graph [mindist=0, minlen=0, ratio=\"auto\", imagepath=\"full/path/to/images\"]" << std::endl;
-  }
-
+  out_ << "  graph [mindist=0, minlen=0, ratio=\"auto\"]" << std::endl;
   out_ << std::endl;
   out_ << "  // Set the default properties for nodes and edges between nodes" << std::endl;
-
-  if (options_.plotWithPics) {
-    out_ << "  node [shape=ellipse, color=gray, fontname=\"fixed\", fontsize=9, label=\"\", fixedsize=true, width=1.125, height=1.125]" << std::endl;
-  } else {
-    out_ << "  node [shape=ellipse, color=gray, fontname=\"fixed\", fontsize=9, fixedsize=true, width=1.125, height=1.125]" << std::endl;
-  }
-
+  out_ << "  node [shape=ellipse, color=gray, fontname=\"NFM-Indus Script\", fontsize=48, fixedsize=true, width=1.125, height=1.125]" << std::endl;
   out_ << "  edge [color=gray, style=tapered, dir=forward, arrowhead=none]" << std::endl;
   out_ << std::endl;
 
@@ -62,13 +56,7 @@ void Gfx::plotGraphviz(const StateMgr& statemgr) {
       continue;
     }
 
-    if (options_.plotWithPics) {
-      out_ << "  " << state->str()
-           << " [image=\"S"  << state->str() << ".jpg\"]" << std::endl;
-    } else {
-      out_ << "  " << state->str()
-           <<" [label=\"" << state->str() << "\"]" << std::endl;
-    }
+    out_ << "  " << state->str() << " [label=&#\"" << state->str() << ";\"]" << std::endl;
   }
   out_ << std::endl;
 

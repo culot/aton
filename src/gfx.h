@@ -18,7 +18,6 @@ class Gfx {
 
   struct Options {
     bool plotMultiState {false};
-    bool plotWithPics {false};
   };
 
   Gfx(Type type, const std::string& outputFileName);

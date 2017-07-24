@@ -10,8 +10,7 @@ const std::string REQUEST_STATUS("STATUS");
 const std::string REQUEST_CLEAR("CLEAR");
 const std::string REQUEST_JUNCTURE("JUNCTURE");
 const std::string DB_FILE("/var/tmp/aton.db");
-const std::string PLOT_FILE_GRAPHVIZ("/var/tmp/aton-graphviz.dot");
-const std::string PLOT_FILE_GRAPHVIZ_PICS("/var/tmp/aton-graphviz-pics.dot");
+const std::string PLOT_FILE_GRAPHVIZ("/var/tmp/aton.dot");
 
 }
 }
