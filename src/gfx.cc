@@ -56,7 +56,7 @@ void Gfx::plotGraphviz(const StateMgr& statemgr) {
       continue;
     }
 
-    out_ << "  " << state->str() << " [label=&#\"" << state->str() << ";\"]" << std::endl;
+    out_ << "  " << state->str() << " [label=\"&#" << state->str() << ";\"]" << std::endl;
   }
   out_ << std::endl;
 
