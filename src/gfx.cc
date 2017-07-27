@@ -1,6 +1,7 @@
 #include <exception>
 #include <vector>
 #include <cmath>
+#include <sstream>
 
 #include <glog/logging.h>
 
@@ -56,7 +57,22 @@ void Gfx::plotGraphviz(const StateMgr& statemgr) {
       continue;
     }
 
-    out_ << "  " << state->str() << " [label=\"&#" << state->str() << ";\"]" << std::endl;
+    // The state->str() string contains an hexadecinal value,
+    // representing the corresponding character (UTF8 code)
+    // from the NFM-Indus font. Graphviz knows how to draw
+    // UTF8 fonts, as long as it receives the equivalent
+    // decimal value, hence the following conversion.
+    //
+    // Note: The NFM Indus font belongs to UTF8's Basic
+    // Multilingual Plane of the Private Use Area range,
+    // and starts with U+E.
+    int utf8dec;
+    std::istringstream("E" + state->str()) >> std::hex >> utf8dec;
+
+    // The 'x' in front of the node name is here to prevent
+    // a bug (?) in Grpahviz which seems to dislike node names
+    // that do not start with a letter.
+    out_ << "  x" << state->str() << " [label=\"&#" << utf8dec << ";\"]" << std::endl;
   }
   out_ << std::endl;
 
@@ -67,7 +83,7 @@ void Gfx::plotGraphviz(const StateMgr& statemgr) {
 
     std::vector<StateMgr::Prediction> predictions = statemgr.predictNextStates(state);
     for (const auto& prediction : predictions) {
-      out_ << "  " << state->str() << " -> " << prediction.state->str();
+      out_ << "  x" << state->str() << " -> x" << prediction.state->str();
       out_ << " [penwidth=" << std::lround(10 * prediction.probability) << "]" << std::endl;
     }
   }
