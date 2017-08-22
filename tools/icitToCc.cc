@@ -60,6 +60,7 @@ std::vector<std::string> tokenize(const std::string& line) {
 
 void processFiles(std::ofstream& out, std::vector<std::string>& ifnames) {
   for (const auto& f : ifnames) {
+    std::cout << "Processing [" << f << "]" << std::endl;
     std::ifstream in(f);
     if (!in) {
       std::cerr << "Could not open [" << f << "] for reading" << std::endl;
@@ -96,6 +97,7 @@ int main(int argc, char** argv) {
 
   if (argc <= 1) {
     std::cerr << "Missing input file name(s)" << std::endl;
+    std::cerr << "Example usage: ./icitToCc `find ../../data -type f`" << std::endl;
     return 1;
   }
 
