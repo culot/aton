@@ -3,8 +3,22 @@
 #include <algorithm>
 #include <iterator>
 #include <regex>
+#include <map>
 #include <vector>
 #include <string>
+
+
+bool isSeparator(const std::string& sign) {
+  static const std::map<std::string, bool> separators {
+    {"2DC", true},
+    {"2DF", true},
+    {"31A", true},
+    {"31C", true},
+    {"322", true},
+  };
+
+  return separators.find(sign) != separators.end();
+}
 
 void writeHeader(std::ofstream& out) {
   out << "#include <string>" << std::endl;
@@ -76,6 +90,12 @@ void processFiles(std::ofstream& out, std::vector<std::string>& ifnames) {
       std::vector<std::string> tokens = tokenize(line);
       for (const auto& token : tokens) {
         out << "  common::send(requester, \"" << token << "\");" << std::endl;
+        if (isSeparator(token) && token != tokens.back()) {
+          // Add an extra separator for signs we assume stand for
+          // a sentence separator (unless it is the last element
+          // of the sentence).
+          out << "  common::sendJuncture(requester);" << std::endl;
+        }
       }
 
       out << std::endl;
