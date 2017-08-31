@@ -192,7 +192,6 @@ digraph "aton" {
   x2CB -> x22A [penwidth=5]
   x2D4 -> x348 [penwidth=5]
   x2D4 -> x349 [penwidth=5]
-  x321 -> x5D0 [penwidth=10]
   x44A -> x0ED [penwidth=10]
   x4F8 -> x2C8 [penwidth=10]
   x3AF -> x2D6 [penwidth=10]
