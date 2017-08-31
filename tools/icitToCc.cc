@@ -14,6 +14,7 @@ bool isSeparator(const std::string& sign) {
     {"2DF", true},
     {"31A", true},
     {"31C", true},
+    {"321", true},
     {"322", true},
   };
 
